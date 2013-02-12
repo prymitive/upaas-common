@@ -5,7 +5,7 @@
 """
 
 
-from upaas_storage.exceptions import InvalidStorageConfiguration
+from upaas.storage.exceptions import InvalidStorageConfiguration
 
 
 class BaseStorage(object):
@@ -17,22 +17,22 @@ class BaseStorage(object):
 
     def configure(self):
         """
-        Parse upaas_storage configuration and return False if it's not valid.
+        Parse storage configuration and return False if it's not valid.
         """
         return True
 
     def get(self, remote_path, local_path):
         """
-        Get file from upaas_storage.
+        Get file from storage.
 
-        :param remote_path: Path of the file we want to download from upaas_storage.
+        :param remote_path: Path of the file we want to download from storage.
         :param local_path: Where to put downloaded file.
         """
         raise NotImplementedError
 
     def put(self, local_path, remote_path):
         """
-        Upload file to upaas_storage.
+        Upload file to storage.
 
         :param local_path: Path of the file to upload.
         :param remote_path: Path under uploaded file should be available.
@@ -41,8 +41,8 @@ class BaseStorage(object):
 
     def delete(self, remote_path):
         """
-        Delete file from upaas_storage.
+        Delete file from storage.
 
-        :param remote_path: Path of the remote file to be deleted from upaas_storage.
+        :param remote_path: Path of the remote file to be deleted from storage.
         """
         raise NotImplementedError

@@ -11,7 +11,7 @@ import tempfile
 
 import pytest
 
-from upaas_storage.local import LocalStorage
+from upaas.storage.local import LocalStorage
 
 
 @pytest.fixture(scope="module")

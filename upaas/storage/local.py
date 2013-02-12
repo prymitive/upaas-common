@@ -9,7 +9,7 @@ import os
 import shutil
 import logging
 
-from upaas_storage.base import BaseStorage
+from upaas.storage.base import BaseStorage
 
 
 log = logging.getLogger(__name__)
