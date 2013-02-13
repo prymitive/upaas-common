@@ -8,10 +8,16 @@
 import os
 import shutil
 import tempfile
+import logging
 
 import pytest
 
 from upaas.storage.local import LocalStorage
+from upaas.storage.exceptions import InvalidStorageConfiguration
+
+
+logging.basicConfig(level=logging.FATAL)
+log = logging.getLogger()
 
 
 @pytest.fixture(scope="module")
@@ -48,12 +54,22 @@ def empty_file(request):
     return path
 
 
-def test_settings(storage):
+def test_valid_settings(storage):
     assert storage.dir is not None
+
+
+def test_invalid_settings():
+    with pytest.raises(InvalidStorageConfiguration):
+        storage = LocalStorage({})
 
 
 def test_dir_exists(storage):
     assert os.path.isdir(storage.dir)
+
+
+def test_dir_missing():
+    with pytest.raises(InvalidStorageConfiguration):
+        storage = LocalStorage({'dir': '/non-existing-dir'})
 
 
 def test_put_and_get(storage, empty_dir, empty_file):
