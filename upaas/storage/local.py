@@ -42,3 +42,6 @@ class LocalStorage(BaseStorage):
         log.info(u"[PUT] Copying %s to %s" % (local_path,
                                               self.join_paths(remote_path)))
         shutil.copy(local_path, self.join_paths(remote_path))
+
+    def exists(self, remote_path):
+        return os.path.exists(self.join_paths(remote_path))

@@ -46,3 +46,9 @@ class BaseStorage(object):
         :param remote_path: Path of the remote file to be deleted from storage.
         """
         raise NotImplementedError
+
+    def exists(self, remote_path):
+        """
+        Check if given path (file or directory) exists on storage.
+        """
+        raise NotImplementedError

@@ -63,13 +63,29 @@ def test_invalid_settings():
         storage = LocalStorage({})
 
 
-def test_dir_exists(storage):
+def test_config_dir_exists(storage):
     assert os.path.isdir(storage.dir)
 
 
-def test_dir_missing():
+def test_config_dir_missing():
     with pytest.raises(InvalidStorageConfiguration):
-        storage = LocalStorage({'dir': '/non-existing-dir'})
+        storage = LocalStorage({"dir": "/non-existing-dir"})
+
+
+def test_file_exists(storage):
+    file_name = "file_exists"
+    open(os.path.join(storage.dir, file_name), "w").close()
+    assert storage.exists(file_name) is True
+
+
+def test_dir_exists(storage):
+    dir_name = "dir_exists"
+    os.mkdir(os.path.join(storage.dir, dir_name))
+    assert storage.exists(dir_name) is True
+
+
+def test_not_exists(storage):
+    assert storage.exists("missing_file") is False
 
 
 def test_put_and_get(storage, empty_dir, empty_file):
