@@ -14,11 +14,29 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class CommandTimeoutAlarm(Exception):
+class CommandError(Exception):
+    """
+    Generic command execution error.
+    """
     pass
 
 
-def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env=[]):
+class CommandTimeoutAlarm(CommandError):
+    """
+    Command was executing longer than allowed.
+    """
+    pass
+
+
+class CommandFailed(CommandError):
+    """
+    Command exited with return code indicating error.
+    """
+    pass
+
+
+def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
+            valid_retcodes=[0]):
     """
     Execute given command in shell.
 
@@ -27,26 +45,31 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env=[]):
     :param cwd: If provided chdir() to this path before executing.
     :param output_loglevel: Logging level at which command output will be
                             logged.
+    :param valid_retcodes: List of return codes that can be returned by this
+                           command. Other return codes will be interpreted as
+                           error and exception will be raised.
     :raises: CommandTimeoutAlarm
     """
     def _alarm_handler(signum, frame):
         raise CommandTimeoutAlarm
+
+    log.info(u"About to execute command: %s" % cmd)
 
     if cwd:
         wd = os.getcwd()
         log.info(u"Changing working directory to '%s'" % cwd)
         os.chdir(cwd)
 
-    for e in env:
-        ename = e.split("=")[0]
-        evalue = "=".join(e.split("=")[1:])
+    for ename, evalue in env.items():
         log.info(u"Setting ENV variable %s=%s" % (ename, evalue))
         os.environ[ename] = evalue
 
     if timeout:
         signal.signal(signal.SIGALRM, _alarm_handler)
         signal.alarm(timeout)
+        log.info(u"Timeout for command is %d seconds" % timeout)
 
+    log.info(u"Running ...")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True)
     try:
@@ -66,4 +89,6 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env=[]):
     if cwd:
         os.chdir(wd)
 
-    return retcode
+    if retcode not in valid_retcodes:
+        log.error(u"Command failed with status %d" % retcode)
+        raise CommandFailed
