@@ -1,0 +1,4 @@
+required_string: abc
+folder1:
+  subfolder1:
+    required_int: 123

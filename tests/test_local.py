@@ -13,7 +13,7 @@ import logging
 import pytest
 
 from upaas.storage.local import LocalStorage
-from upaas.storage.exceptions import InvalidStorageConfiguration
+from upaas.config import ConfigurationError
 
 
 logging.basicConfig(level=logging.FATAL)
@@ -26,7 +26,7 @@ def storage(request):
     storage = LocalStorage({'dir': dir})
 
     def cleanup():
-        shutil.rmtree(storage.dir)
+        shutil.rmtree(storage.settings.dir)
     request.addfinalizer(cleanup)
 
     return storage
@@ -55,32 +55,32 @@ def empty_file(request):
 
 
 def test_valid_settings(storage):
-    assert storage.dir is not None
+    assert storage.settings.dir is not None
 
 
 def test_invalid_settings():
-    with pytest.raises(InvalidStorageConfiguration):
-        storage = LocalStorage({})
+    with pytest.raises(ConfigurationError):
+        LocalStorage({})
 
 
 def test_config_dir_exists(storage):
-    assert os.path.isdir(storage.dir)
+    assert os.path.isdir(storage.settings.dir)
 
 
 def test_config_dir_missing():
-    with pytest.raises(InvalidStorageConfiguration):
-        storage = LocalStorage({"dir": "/non-existing-dir"})
+    with pytest.raises(ConfigurationError):
+        LocalStorage({"dir": "/non-existing-dir"})
 
 
 def test_file_exists(storage):
     file_name = "file_exists"
-    open(os.path.join(storage.dir, file_name), "w").close()
+    open(os.path.join(storage.settings.dir, file_name), "w").close()
     assert storage.exists(file_name) is True
 
 
 def test_dir_exists(storage):
     dir_name = "dir_exists"
-    os.mkdir(os.path.join(storage.dir, dir_name))
+    os.mkdir(os.path.join(storage.settings.dir, dir_name))
     assert storage.exists(dir_name) is True
 
 
@@ -90,7 +90,7 @@ def test_not_exists(storage):
 
 def test_put_and_get(storage, empty_dir, empty_file):
     storage.put(empty_file, "abc")
-    assert os.path.isfile(os.path.join(storage.dir, "abc"))
+    assert os.path.isfile(os.path.join(storage.settings.dir, "abc"))
 
     local_path = os.path.join(empty_dir, "xyz")
     storage.get("abc", local_path)

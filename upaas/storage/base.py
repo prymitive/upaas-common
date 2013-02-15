@@ -5,21 +5,16 @@
 """
 
 
-from upaas.storage.exceptions import InvalidStorageConfiguration
+from upaas import config
 
 
 class BaseStorage(object):
 
-    def __init__(self, settings):
-        self.settings = settings
-        if not self.configure():
-            raise InvalidStorageConfiguration
+    configuration_schema = {}
 
-    def configure(self):
-        """
-        Parse storage configuration and return False if it's not valid.
-        """
-        return True
+    def __init__(self, settings):
+        self.settings = config.Config(settings,
+                                      _schema=self.configuration_schema)
 
     def get(self, remote_path, local_path):
         """
