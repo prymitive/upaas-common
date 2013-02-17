@@ -16,10 +16,6 @@ from upaas.storage.local import LocalStorage
 from upaas.config import ConfigurationError
 
 
-logging.basicConfig(level=logging.FATAL)
-log = logging.getLogger()
-
-
 @pytest.fixture(scope="module")
 def storage(request):
     dir = tempfile.mkdtemp(prefix="upaas_teststorage_")

@@ -40,8 +40,8 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     """
     Execute given command in shell.
 
-    :param timeout: Maximum time (in seconds) command can take to execute, if it
-                    takes longer it will be killed. No timeout if None.
+    :param timeout: Maximum time (in seconds) command can take to execute, if
+                    it takes longer it will be killed. No timeout if None.
     :param cwd: If provided chdir() to this path before executing.
     :param output_loglevel: Logging level at which command output will be
                             logged.

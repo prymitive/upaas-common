@@ -3,8 +3,11 @@
     :copyright: Copyright 2013 by Łukasz Mierzwa
     :contact: l.mierzwa@gmail.com
 """
+
+
 # code from
-# http://www.thehosthelpers.com/how-tos-tips-tricks/protip-secure-your-rooted-python-script-(or-easy-chroot-class)/
+# http://www.thehosthelpers.com/how-tos-tips-tricks/protip-secure-your-rooted
+# - python-script-(or-easy-chroot-class)/
 
 
 import os

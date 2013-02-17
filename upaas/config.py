@@ -20,7 +20,8 @@ def construct_yaml_str(self, node):
     objects.
 
     Code from:
-    http://stackoverflow.com/questions/2890146/how-to-force-pyyaml-to-load-strings-as-unicode-objects
+    http://stackoverflow.com/questions/2890146/how-to-force-pyyaml-to-load
+    -strings-as-unicode-objects
     """
     return self.construct_scalar(node)
 Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
@@ -137,7 +138,7 @@ class Config(object):
             elif isinstance(value, ConfigEntry):
                 self.parse_entry(key, value, (content or {}).get(key))
             else:
-                log.warning(u"Invalid entry in configuration content: %s" % key)
+                log.warning(u"Invalid configuration entry: %s" % key)
 
     def __getattr__(self, item):
         if item in self.entries:
@@ -160,7 +161,7 @@ class Config(object):
             ret[key] = getattr(self, key).dump()
         return ret
 
-    def parse_entry(self, name,  entry_schema, value):
+    def parse_entry(self, name, entry_schema, value):
         """
         Parse and validate single configuration entry using schema.
         """

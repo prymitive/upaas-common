@@ -13,10 +13,6 @@ import pytest
 from upaas import config
 
 
-logging.basicConfig(level=logging.FATAL)
-log = logging.getLogger()
-
-
 class BasicConfig(config.Config):
     schema = {
         "required_string": config.StringEntry(required=True),
