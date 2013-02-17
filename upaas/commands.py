@@ -21,7 +21,7 @@ class CommandError(Exception):
     pass
 
 
-class CommandTimeoutAlarm(CommandError):
+class CommandTimeout(CommandError):
     """
     Command was executing longer than allowed.
     """
@@ -48,10 +48,10 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     :param valid_retcodes: List of return codes that can be returned by this
                            command. Other return codes will be interpreted as
                            error and exception will be raised.
-    :raises: CommandTimeoutAlarm
+    :returns: tuple -- (return code, output as list of strings)
     """
     def _alarm_handler(signum, frame):
-        raise CommandTimeoutAlarm
+        raise CommandTimeout
 
     log.info(u"About to execute command: %s" % cmd)
 
@@ -69,6 +69,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
         signal.alarm(timeout)
         log.info(u"Timeout for command is %d seconds" % timeout)
 
+    output = []
     log.info(u"Running ...")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True)
@@ -77,14 +78,15 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
             retcode = p.poll()
             line = p.stdout.readline()
             if line:
+                output.append(line)
                 log.log(output_loglevel, line.rstrip(os.linesep))
             if retcode is not None:
                 break
-    except CommandTimeoutAlarm:
+    except CommandTimeout:
         os.kill(p.pid, signal.SIGKILL)
         if cwd:
             os.chdir(wd)
-        raise CommandTimeoutAlarm
+        raise CommandTimeout
 
     if cwd:
         os.chdir(wd)
@@ -92,3 +94,5 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     if retcode not in valid_retcodes:
         log.error(u"Command failed with status %d" % retcode)
         raise CommandFailed
+
+    return retcode, output

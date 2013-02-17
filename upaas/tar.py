@@ -33,7 +33,7 @@ def pack_tar(dir, archive_path, timeout=None):
     try:
         commands.execute("tar -czpf %s *" % archive_path, timeout=timeout,
                          cwd=dir)
-    except commands.CommandTimeoutAlarm:
+    except commands.CommandTimeout:
         log.error(u"Tar command was taking too long and it was killed")
         _cleanup(archive_path)
         return False
@@ -56,7 +56,7 @@ def unpack_tar(archive_path, destination, timeout=None):
     try:
         commands.execute("tar -xzpf %s" % archive_path, timeout=timeout,
                          cwd=dir)
-    except commands.CommandTimeoutAlarm:
+    except commands.CommandTimeout:
         log.error(u"Tar command was taking too long and it was killed")
         return False
     except commands.CommandFailed:

@@ -32,28 +32,6 @@ def storage(request):
     return storage
 
 
-@pytest.fixture(scope="function")
-def empty_dir(request):
-    dir = tempfile.mkdtemp(prefix="upaas_testdir_")
-
-    def cleanup():
-        shutil.rmtree(dir)
-
-    request.addfinalizer(cleanup)
-    return dir
-
-
-@pytest.fixture(scope="function")
-def empty_file(request):
-    path = tempfile.mkstemp(prefix="upaas_testfile_")[1]
-
-    def cleanup():
-        os.remove(path)
-
-    request.addfinalizer(cleanup)
-    return path
-
-
 def test_valid_settings(storage):
     assert storage.settings.dir is not None
 
