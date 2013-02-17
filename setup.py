@@ -11,11 +11,6 @@ import sys
 from setuptools import setup, find_packages
 
 
-extra = {}
-if sys.version_info >= (3, 0):
-    extra.update(use_2to3=True)
-
-
 setup(
     name='upaas',
     version='0.1-dev',
@@ -33,5 +28,4 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     platforms=['Linux'],
-    **extra
 )
