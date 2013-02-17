@@ -12,4 +12,4 @@ allow_failures:
 
 install: "pip install -Ur requirements.txt --use-mirrors"
 
-script: "py.test -vs --pep8 --cov upaas"
+script: "py.test -vs --cov upaas"
