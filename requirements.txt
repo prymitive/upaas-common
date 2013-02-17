@@ -1,5 +1,5 @@
 pyyaml
 pytest
 pytest-cov
-pytest-pep8
+#pytest-pep8 breaks on python 3 due to pip issue
 pytest-capturelog
