@@ -7,3 +7,7 @@
 
 class InvalidStorageConfiguration(Exception):
     pass
+
+
+class StorageError(Exception):
+    pass

@@ -14,11 +14,11 @@ from upaas import commands
 log = logging.getLogger(__name__)
 
 
-def pack_tar(dir, archive_path, timeout=None):
+def pack_tar(source, archive_path, timeout=None):
     """
     Pack files at given directory into tar archive.
 
-    :param dir: Directory which content should be packed.
+    :param source: Directory which content should be packed.
     :param archive_path: Path at which tar archive file will be created.
     :param timeout: Timeout in seconds.
     """
@@ -32,7 +32,7 @@ def pack_tar(dir, archive_path, timeout=None):
 
     try:
         commands.execute("tar -czpf %s *" % archive_path, timeout=timeout,
-                         cwd=dir)
+                         cwd=source)
     except commands.CommandTimeout:
         log.error(u"Tar command was taking too long and it was killed")
         _cleanup(archive_path)
@@ -55,7 +55,7 @@ def unpack_tar(archive_path, destination, timeout=None):
     """
     try:
         commands.execute("tar -xzpf %s" % archive_path, timeout=timeout,
-                         cwd=dir)
+                         cwd=destination)
     except commands.CommandTimeout:
         log.error(u"Tar command was taking too long and it was killed")
         return False

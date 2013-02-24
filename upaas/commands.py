@@ -87,6 +87,11 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
         if cwd:
             os.chdir(wd)
         raise CommandTimeout
+    except KeyboardInterrupt:
+        os.kill(p.pid, signal.SIGKILL)
+        if cwd:
+            os.chdir(wd)
+        raise CommandFailed
 
     if cwd:
         os.chdir(wd)

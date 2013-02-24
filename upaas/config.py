@@ -36,8 +36,13 @@ class ConfigurationError(Exception):
 
 
 class ConfigEntry(object):
-    def __init__(self, required=False):
+
+    default = None
+
+    def __init__(self, required=False, default=None):
         self.required = required
+        if not default is None:
+            self.default = default
 
     def validate(self, value):
         """
@@ -52,6 +57,10 @@ class ConfigEntry(object):
         return value
 
 
+class WildcardEntry(ConfigEntry):
+    pass
+
+
 class StringEntry(ConfigEntry):
     pass
 
@@ -61,9 +70,53 @@ class IntegerEntry(ConfigEntry):
 
 
 class ListEntry(ConfigEntry):
-    def __init__(self, value_type, **kwargs):
+
+    default = []
+
+    def __init__(self, value_type=None, **kwargs):
         self.value_type = value_type
         super(ListEntry, self).__init__(**kwargs)
+
+    def validate(self, value):
+        if value is None:
+            return
+        if not isinstance(value, list):
+            log.error(u"Value must be list, %s "
+                      u"given" % value.__class__.__name__)
+            raise ConfigurationError
+        if not self.value_type:
+            return
+        for elem in value:
+            if not isinstance(elem, self.value_type):
+                log.error(u"List element '%r' must be instance of '%s', '%s' "
+                          u"given" % (elem, self.value_type.__name__,
+                                      elem.__class__.__name__))
+                raise ConfigurationError
+
+
+class DictEntry(ConfigEntry):
+
+    default = {}
+
+    def __init__(self, value_type=None, **kwargs):
+        self.value_type = value_type
+        super(DictEntry, self).__init__(**kwargs)
+
+    def validate(self, value):
+        if value is None:
+            return
+        if not isinstance(value, dict):
+            log.error(u"Value must be dict, %s "
+                      u"given" % value.__class__.__name__)
+            raise ConfigurationError
+        if not self.value_type:
+            return
+        for name, elem in value.items():
+            if not isinstance(elem, self.value_type):
+                log.error(u"Dict key '%r' value must be instance of '%s', '%s'"
+                          u" given" % (name, self.value_type.__name__,
+                                       elem.__class__.__name__))
+                raise ConfigurationError
 
 
 class FSPathEntry(ConfigEntry):
@@ -80,12 +133,12 @@ class FSPathEntry(ConfigEntry):
 class ScriptEntry(ConfigEntry):
     """
     Used for scripts that can be defined either as a list of strings or one big
-    multi-line string. In case of list it will be converted into single string.
+    multi-line string. In case of string it will be converted into list.
     """
 
     def clean(self, value):
-        if isinstance(value, list):
-            return u"\n".join(value)
+        if isinstance(value, unicode):
+            return [value]
 
 
 class Config(object):
@@ -124,7 +177,7 @@ class Config(object):
         if _schema:
             self.schema = _schema
 
-        if self.schema and (not content or not isinstance(content, dict)):
+        if not isinstance(content, dict):
             log.error(u"Invalid configuration")
             raise ConfigurationError
 
@@ -135,6 +188,8 @@ class Config(object):
             if isinstance(value, dict):
                 setattr(self, key, Config(content.get(key), _schema=value))
                 self.children.add(key)
+            elif isinstance(value, WildcardEntry):
+                self.entries[key] = (content or {}).get(key)
             elif isinstance(value, ConfigEntry):
                 self.parse_entry(key, value, (content or {}).get(key))
             else:
@@ -172,8 +227,17 @@ class Config(object):
         log.debug(u"Cleaning configuration entry '%s'" % name)
         value = entry_schema.clean(value)
         log.debug(u"Validating configuration entry '%s'" % name)
-        entry_schema.validate(value)
-        if value:
-            self.entries[name] = value
-            log.debug(u"Configuration entry '%s' with value '%s'" % (name,
-                                                                     value))
+        try:
+            entry_schema.validate(value)
+        except ConfigurationError:
+            log.error(u"Configuration entry '%s' is invalid" % name)
+            raise ConfigurationError
+        else:
+            if value is not None:
+                self.entries[name] = value
+                log.debug(u"Configuration entry '%s' with value "
+                          u"'%s'" % (name, value))
+            elif entry_schema.default is not None:
+                log.debug(u"Configuration entry '%s' is missing, using default"
+                          u" value: %s" % (name, entry_schema.default))
+                self.entries[name] = entry_schema.default

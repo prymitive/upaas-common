@@ -6,7 +6,6 @@
 
 
 import os
-import logging
 
 import pytest
 
@@ -22,6 +21,18 @@ class BasicConfig(config.Config):
             },
             "optional_int": config.IntegerEntry(),
         }
+    }
+
+
+class ListConfig(config.Config):
+    schema = {
+        u"mylist": config.ListEntry(value_type=int)
+    }
+
+
+class DictConfig(config.Config):
+    schema = {
+        u"mydict": config.DictEntry(value_type=unicode)
     }
 
 
@@ -65,3 +76,43 @@ def test_dump():
     }
     cfg = BasicConfig(options)
     assert cfg.dump() == options
+
+
+def test_default_value():
+    class LocalConfig(config.Config):
+        schema = {u"myitem": config.StringEntry(default=u"default value")}
+
+    cfg = LocalConfig({})
+    assert cfg.myitem == u"default value"
+
+
+def test_list_entry_valid():
+    cfg = ListConfig({u"mylist": [1, 2, 3, 4]})
+    assert cfg.mylist == [1, 2, 3, 4]
+
+    cfg = ListConfig({})
+    assert cfg.mylist == []
+
+
+def test_list_entry_invalid():
+    with pytest.raises(config.ConfigurationError):
+        ListConfig({u"mylist": {"a": 1}})
+
+    with pytest.raises(config.ConfigurationError):
+        ListConfig({u"mylist": [u"not an int", 1]})
+
+
+def test_dict_entry_valid():
+    cfg = DictConfig({u"mydict": {u"keya": u"valuea", u"keyb": u"valueb"}})
+    assert cfg.mydict == {u"keya": u"valuea", u"keyb": u"valueb"}
+
+    cfg = DictConfig({})
+    assert cfg.mydict == {}
+
+
+def test_dict_entry_invalid():
+    with pytest.raises(config.ConfigurationError):
+        DictConfig({u"mydict": [1]})
+
+    with pytest.raises(config.ConfigurationError):
+        DictConfig({u"mydict": {u"not an unicode": 1}})

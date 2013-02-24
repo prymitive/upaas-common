@@ -11,6 +11,7 @@ import logging
 
 from upaas import config
 from upaas.storage.base import BaseStorage
+from upaas.storage.exceptions import StorageError
 
 
 log = logging.getLogger(__name__)
@@ -28,12 +29,18 @@ class LocalStorage(BaseStorage):
     def get(self, remote_path, local_path):
         log.info(u"[GET] Copying %s to %s" % (self._join_paths(remote_path),
                                               local_path))
-        shutil.copy(self._join_paths(remote_path), local_path)
+        try:
+            shutil.copy(self._join_paths(remote_path), local_path)
+        except:
+            raise StorageError
 
     def put(self, local_path, remote_path):
         log.info(u"[PUT] Copying %s to %s" % (local_path,
                                               self._join_paths(remote_path)))
-        shutil.copy(local_path, self._join_paths(remote_path))
+        try:
+            shutil.copy(local_path, self._join_paths(remote_path))
+        except:
+            raise StorageError
 
     def exists(self, remote_path):
         return os.path.exists(self._join_paths(remote_path))
