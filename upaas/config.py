@@ -139,6 +139,7 @@ class ScriptEntry(ConfigEntry):
     def clean(self, value):
         if isinstance(value, unicode):
             return [value]
+        return value
 
 
 class Config(object):
