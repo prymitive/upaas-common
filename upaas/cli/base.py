@@ -8,12 +8,16 @@
 import sys
 import codecs
 import logging
+from urlparse import urljoin
 
 from plumbum import cli
+
+from upaas.client import UpaasAPI
 
 
 class UPaaSApplication(cli.Application):
 
+    api = None
     log = None
     log_level = "info"
     log_output = "-"
@@ -42,3 +46,9 @@ class UPaaSApplication(cli.Application):
 
             self.log.setLevel(getattr(logging, self.log_level.upper(),
                                       logging.INFO))
+
+    def api_connect(self, login, apikey, url):
+        if not self.api:
+            url = urljoin(url, '/api/v1/')
+            self.log.info("Connecting to API at '%s' as '%s'" % (url, login))
+            self.api = UpaasAPI(login, apikey, url)

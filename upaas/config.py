@@ -182,6 +182,7 @@ class Config(object):
             log.error(u"Invalid configuration")
             raise ConfigurationError
 
+        self.content = content
         self.entries = {}
         self.children = set()
 
@@ -216,6 +217,12 @@ class Config(object):
         for key in self.children:
             ret[key] = getattr(self, key).dump()
         return ret
+
+    def dump_string(self):
+        """
+        Dump all entries as string.
+        """
+        return yaml.dump(self.content)
 
     def parse_entry(self, name, entry_schema, value):
         """
