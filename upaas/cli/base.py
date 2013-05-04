@@ -12,6 +12,8 @@ from urlparse import urljoin
 
 from plumbum import cli
 
+from slumber.exceptions import SlumberHttpBaseException
+
 from upaas.client import UpaasAPI
 
 
@@ -52,3 +54,18 @@ class UPaaSApplication(cli.Application):
             url = urljoin(url, '/api/v1/')
             self.log.info("Connecting to API at '%s' as '%s'" % (url, login))
             self.api = UpaasAPI(login, apikey, url)
+
+    def print_msg(self, msg):
+        for line in msg.splitlines():
+            print(">> %s" % line)
+
+    def handle_error(self, err):
+        if isinstance(err, SlumberHttpBaseException):
+            if err.response.status_code == 401:
+                self.log.error("Authentication error")
+            elif err.content:
+                self.log.error(err.content)
+            else:
+                self.log.error(err)
+        else:
+            self.log.error(err)
