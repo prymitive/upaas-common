@@ -8,12 +8,11 @@
 import os
 import shutil
 import tempfile
-import logging
 
 import pytest
 
 from upaas.storage.local import LocalStorage
-from upaas.config import ConfigurationError
+from upaas.config.base import ConfigurationError
 
 
 @pytest.fixture(scope="module")

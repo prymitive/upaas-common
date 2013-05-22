@@ -9,35 +9,35 @@ import os
 
 import pytest
 
-from upaas import config
+from upaas.config import base
 
 
-class BasicConfig(config.Config):
+class BasicConfig(base.Config):
     schema = {
-        "required_string": config.StringEntry(required=True),
+        "required_string": base.StringEntry(required=True),
         "folder1": {
             "subfolder1": {
-                "required_int": config.IntegerEntry(required=True)
+                "required_int": base.IntegerEntry(required=True)
             },
-            "optional_int": config.IntegerEntry(),
+            "optional_int": base.IntegerEntry(),
         }
     }
 
 
-class ListConfig(config.Config):
+class ListConfig(base.Config):
     schema = {
-        u"mylist": config.ListEntry(value_type=int)
+        u"mylist": base.ListEntry(value_type=int)
     }
 
 
-class DictConfig(config.Config):
+class DictConfig(base.Config):
     schema = {
-        u"mydict": config.DictEntry(value_type=unicode)
+        u"mydict": base.DictEntry(value_type=unicode)
     }
 
 
 def test_empty():
-    with pytest.raises(config.ConfigurationError):
+    with pytest.raises(base.ConfigurationError):
         BasicConfig({})
 
 
@@ -79,8 +79,8 @@ def test_dump():
 
 
 def test_default_value():
-    class LocalConfig(config.Config):
-        schema = {u"myitem": config.StringEntry(default=u"default value")}
+    class LocalConfig(base.Config):
+        schema = {u"myitem": base.StringEntry(default=u"default value")}
 
     cfg = LocalConfig({})
     assert cfg.myitem == u"default value"
@@ -95,10 +95,10 @@ def test_list_entry_valid():
 
 
 def test_list_entry_invalid():
-    with pytest.raises(config.ConfigurationError):
+    with pytest.raises(base.ConfigurationError):
         ListConfig({u"mylist": {"a": 1}})
 
-    with pytest.raises(config.ConfigurationError):
+    with pytest.raises(base.ConfigurationError):
         ListConfig({u"mylist": [u"not an int", 1]})
 
 
@@ -111,8 +111,8 @@ def test_dict_entry_valid():
 
 
 def test_dict_entry_invalid():
-    with pytest.raises(config.ConfigurationError):
+    with pytest.raises(base.ConfigurationError):
         DictConfig({u"mydict": [1]})
 
-    with pytest.raises(config.ConfigurationError):
+    with pytest.raises(base.ConfigurationError):
         DictConfig({u"mydict": {u"not an unicode": 1}})

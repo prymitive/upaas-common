@@ -9,7 +9,7 @@ import os
 import shutil
 import logging
 
-from upaas import config
+from upaas.config import base
 from upaas.storage.base import BaseStorage
 from upaas.storage.exceptions import StorageError
 
@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 class LocalStorage(BaseStorage):
 
     configuration_schema = {
-        "dir": config.FSPathEntry(required=True, must_exist=True),
+        "dir": base.FSPathEntry(required=True, must_exist=True),
     }
 
     def _join_paths(self, remote_path):

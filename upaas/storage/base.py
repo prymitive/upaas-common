@@ -5,7 +5,7 @@
 """
 
 
-from upaas import config
+from upaas.config import base
 
 
 class BaseStorage(object):
@@ -13,8 +13,7 @@ class BaseStorage(object):
     configuration_schema = {}
 
     def __init__(self, settings):
-        self.settings = config.Config(settings,
-                                      _schema=self.configuration_schema)
+        self.settings = base.Config(settings, _schema=self.configuration_schema)
 
     def get(self, remote_path, local_path):
         """
