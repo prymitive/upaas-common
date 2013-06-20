@@ -13,7 +13,8 @@ class BaseStorage(object):
     configuration_schema = {}
 
     def __init__(self, settings):
-        self.settings = base.Config(settings, _schema=self.configuration_schema)
+        self.settings = base.Config(settings,
+                                    _schema=self.configuration_schema)
 
     def get(self, remote_path, local_path):
         """
