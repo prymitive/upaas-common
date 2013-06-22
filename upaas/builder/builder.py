@@ -25,7 +25,8 @@ log = logging.getLogger(__name__)
 
 class Builder(object):
 
-    action_names = ["before", "main", "after"]
+    builder_action_names = ["system"]
+    app_action_names = ["before", "main", "after"]
 
     def __init__(self, builder_config, metadata):
         """
@@ -45,20 +46,37 @@ class Builder(object):
         Parse and merge all config files (builder and app meta), then return
         final list of all actions to perform.
         """
+        def _run_action(entry, name, ret):
+            try:
+                value = entry["actions"]["setup"][name]
+                if value:
+                    ret[name] = value
+            except KeyError:
+                pass
+            else:
+                log.debug(u"Got '%s' action" % name)
+
         ret = {}
-        for name in self.action_names:
+
+        # builder actions are special, they cannot be declared by app, only
+        # by builder config
+        for name in self.builder_action_names:
             ret[name] = []
+            _run_action(self.config.interpreters, name, ret)
+
+        for name in self.app_action_names:
+            ret[name] = []
+
+            # global actions
+            _run_action(self.config.interpreters, name, ret)
+
+            # interpreter actions
             for version in ["any"] + meta.interpreter.versions:
-                try:
-                    value = self.config.interpreters[meta.interpreter.type][
-                        version]["actions"]["setup"][name]
-                    if value:
-                        ret[name] = value
-                except KeyError:
-                    pass
-                else:
-                    log.debug(u"Got '%s' action from %s/%s" % (
-                        name, meta.interpreter.type, version))
+                _run_action(
+                    self.config.interpreters[meta.interpreter.type][version],
+                    name, ret)
+
+            # app metadata actions
             try:
                 value = meta.actions.setup.get(name)
                 if value:
@@ -67,6 +85,14 @@ class Builder(object):
                 pass
             else:
                 log.debug(u"Got '%s' action from app meta" % name)
+
+        for name in self.builder_action_names + self.app_action_names:
+            actions = ret.get(name, [])
+            log.info(u"Commands for '%s' action:" % name)
+            for action in actions:
+                log.info(u"- %s" % action)
+            log.info(u"- ")
+
         return ret
 
     def parse_envs(self, meta):
@@ -277,7 +303,7 @@ class Builder(object):
         return True
 
     def run_actions(self, workdir, homedir):
-        for name in self.action_names:
+        for name in self.builder_action_names + self.app_action_names:
             log.info(u"Executing '%s' setup actions" % name)
             for cmd in self.actions[name]:
                 with Chroot(workdir, workdir=homedir):
