@@ -218,6 +218,11 @@ class Builder(object):
             raise exceptions.PackageSystemError
         log.info(u"Os image unpacked")
 
+        if not self.run_actions(self.builder_action_names, workdir, '/'):
+            _cleanup(directory)
+            raise exceptions.PackageUserError
+        log.info(u"All application actions executed")
+
         if not self.install_packages(workdir):
             _cleanup(directory)
             raise exceptions.PackageUserError
@@ -228,10 +233,10 @@ class Builder(object):
             raise exceptions.PackageUserError
         log.info(u"Application cloned")
 
-        if not self.run_actions(workdir, chroot_homedir):
+        if not self.run_actions(self.app_action_names, workdir, chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
-        log.info(u"All actions executed")
+        log.info(u"All application actions executed")
 
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
@@ -302,8 +307,8 @@ class Builder(object):
                     return False
         return True
 
-    def run_actions(self, workdir, homedir):
-        for name in self.builder_action_names + self.app_action_names:
+    def run_actions(self, actions, workdir, homedir):
+        for name in actions:
             log.info(u"Executing '%s' setup actions" % name)
             for cmd in self.actions[name]:
                 with Chroot(workdir, workdir=homedir):
