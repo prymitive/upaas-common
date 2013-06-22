@@ -11,6 +11,7 @@ import logging
 import yaml
 from yaml import Loader, SafeLoader
 
+
 log = logging.getLogger(__name__)
 
 
@@ -164,7 +165,6 @@ class Config(object):
 
     @classmethod
     def from_file(cls, path):
-
         try:
             with open(path) as config_file:
                 content = yaml.safe_load(config_file)
@@ -173,6 +173,10 @@ class Config(object):
             raise ConfigurationError
 
         return cls(content)
+
+    @classmethod
+    def from_string(cls, string):
+        return cls(yaml.safe_load(string))
 
     def __init__(self, content, _schema=None):
         if _schema:
@@ -222,7 +226,7 @@ class Config(object):
         """
         Dump all entries as string.
         """
-        return yaml.dump(self.content)
+        return yaml.safe_dump(self.content)
 
     def parse_entry(self, name, entry_schema, value):
         """
@@ -249,3 +253,39 @@ class Config(object):
                 log.debug(u"Configuration entry '%s' is missing, using default"
                           u" value: %s" % (name, entry_schema.default))
                 self.entries[name] = entry_schema.default
+
+
+def load_config(cls, filename, directories=['.', '/etc/upaas']):
+    """
+    Try to load config, return None in case of errors.
+
+    :param cls: Class to use for config validation and parsing.
+    :filename: Filename to look for.
+    """
+
+    upaas_config = None
+
+    paths = [os.path.join(p, filename) for p in directories]
+    if os.environ.get('UPAAS_CONFIG_DIR'):
+        paths = [os.path.join(os.environ.get('UPAAS_CONFIG_DIR'),
+                              filename)] + paths
+
+    for path in paths:
+        log.debug(u"Trying to load %s config file from %s" % (cls.__name__,
+                                                              path))
+        if os.path.isfile(path):
+            try:
+                upaas_config = cls.from_file(path)
+            except ConfigurationError:
+                log.error(u"Invalid %s config file at %s" % (cls.__name__,
+                                                             path))
+                return None
+            else:
+                log.info(u"Loaded %s config file from %s" % (cls.__name__,
+                                                             path))
+                break
+
+    if not upaas_config:
+        log.error(u"No config file found for %s" % filename)
+
+    return upaas_config
