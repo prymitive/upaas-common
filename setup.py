@@ -12,7 +12,7 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='upaas',
+    name='upaas-common',
     version='0.1-dev',
     license='GPLv3',
     description='uPaaS common classes',
