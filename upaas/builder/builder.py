@@ -217,33 +217,39 @@ class Builder(object):
             _cleanup(directory)
             raise exceptions.PackageSystemError
         log.info(u"Os image unpacked")
+        yield 10
 
         if not self.run_actions(self.builder_action_names, workdir, '/'):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
+        yield 20
 
         if not self.install_packages(workdir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All packages installed")
+        yield 35
 
         if not self.clone(workdir, chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"Application cloned")
+        yield 40
 
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
+        yield 85
 
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
             _cleanup(directory)
             raise exceptions.PackageSystemError
         log.info(u"Application package created")
+        yield 95
 
         try:
             #FIXME remote package name?
@@ -254,6 +260,7 @@ class Builder(object):
             raise exceptions.PackageSystemError
 
         _cleanup(directory)
+        yield 100
 
     def unpack_os(self, directory, workdir, force_fresh=False):
         #TODO right now we always build fresh package
