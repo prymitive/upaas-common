@@ -233,7 +233,8 @@ class Builder(object):
             raise exceptions.PackageUserError
         log.info(u"Application cloned")
 
-        if not self.run_actions(self.app_action_names, workdir, chroot_homedir):
+        if not self.run_actions(self.app_action_names, workdir,
+                                chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
