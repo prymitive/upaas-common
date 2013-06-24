@@ -16,9 +16,7 @@ class BuilderConfig(base.Config):
         },
         "storage": {
             "handler": base.StringEntry(required=True),
-            "settings": {
-                "dir": base.FSPathEntry(required=True, must_exist=True),
-            }
+            "settings": base.WildcardEntry(),
         },
         "bootstrap": {
             "timelimit": base.IntegerEntry(required=True),

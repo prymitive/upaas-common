@@ -46,8 +46,7 @@ class MongoDBStorage(BaseStorage):
 
     def get(self, remote_path, local_path):
         client = self.connect()
-        db = Database(client)
-        fs = GridFS(db)
+        fs = GridFS(client[self.settings.database])
         try:
             fsfile = fs.get_last_version(filename=remote_path)
             with open(local_path, "wb") as dest:
@@ -68,26 +67,26 @@ class MongoDBStorage(BaseStorage):
 
     def put(self, local_path, remote_path):
         client = self.connect()
-        db = Database(client)
-        fs = GridFS(db)
+        fs = GridFS(client[self.settings.database])
         gridin = fs.new_file()
         try:
             with open(local_path, "rb") as source:
-                log.info(u"[PUT] Copying %s to %s" % (
-                    local_path, self._join_paths(remote_path)))
+                log.info(u"[PUT] Copying %s to mongodb:%s" % (local_path,
+                                                              remote_path))
                 while True:
                     data = source.read(4096)
                     if not data:
                         break
                     gridin.write(data)
                 gridin.close()
+            client.disconnect()
         except:
+            client.disconnect()
             raise StorageError
 
     def exists(self, remote_path):
         client = self.connect()
-        db = Database(client)
-        fs = GridFS(db)
+        fs = GridFS(client[self.settings.database])
         ret = fs.exists(filename=remote_path)
         client.disconnect()
         return ret

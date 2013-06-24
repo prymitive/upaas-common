@@ -14,7 +14,7 @@ from upaas import distro
 
 from upaas import commands
 from upaas import tar
-from upaas import config
+from upaas.config.base import ConfigurationError
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
 from upaas.storage.exceptions import StorageError
@@ -175,9 +175,11 @@ class Builder(object):
                       u"loaded" % self.config.storage.handler)
             raise exceptions.InvalidConfiguration
         else:
+            log.info(u"Loaded storage handler: "
+                     u"%s" % self.config.storage.handler)
             try:
-                return storage_handler(self.config.storage.settings.dump())
-            except config.ConfigurationError:
+                return storage_handler(self.config.storage.settings)
+            except ConfigurationError:
                 log.error(u"Storage handler failed to initialize with given "
                           u"configuration")
                 raise exceptions.InvalidConfiguration

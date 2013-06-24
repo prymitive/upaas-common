@@ -182,6 +182,9 @@ class Config(object):
         if _schema:
             self.schema = _schema
 
+        log.debug(u"Parsing settings %s with schema %s" % (content,
+                                                           self.schema))
+
         if not isinstance(content, dict):
             log.error(u"Invalid configuration")
             raise ConfigurationError
