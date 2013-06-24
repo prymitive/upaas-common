@@ -11,7 +11,7 @@ import logging
 
 from upaas.config import base
 from upaas.storage.base import BaseStorage
-from upaas.storage.exceptions import StorageError
+from upaas.storage.exceptions import StorageError, FileNotFound
 
 
 log = logging.getLogger(__name__)
@@ -27,6 +27,10 @@ class LocalStorage(BaseStorage):
         return os.path.join(self.settings.dir, remote_path.lstrip('/'))
 
     def get(self, remote_path, local_path):
+        if not os.path.exists(self._join_paths(remote_path)):
+            log.error(u"[GET] File not found: %s" % remote_path)
+            raise FileNotFound
+
         log.info(u"[GET] Copying %s to %s" % (self._join_paths(remote_path),
                                               local_path))
         try:

@@ -11,3 +11,7 @@ class InvalidStorageConfiguration(Exception):
 
 class StorageError(Exception):
     pass
+
+
+class FileNotFound(StorageError):
+    pass
