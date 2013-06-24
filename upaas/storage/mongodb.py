@@ -68,7 +68,7 @@ class MongoDBStorage(BaseStorage):
     def put(self, local_path, remote_path):
         client = self.connect()
         fs = GridFS(client[self.settings.database])
-        gridin = fs.new_file()
+        gridin = fs.new_file(filename=remote_path)
         try:
             with open(local_path, "rb") as source:
                 log.info(u"[PUT] Copying %s to mongodb:%s" % (local_path,
