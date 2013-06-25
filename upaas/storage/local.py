@@ -27,7 +27,7 @@ class LocalStorage(BaseStorage):
         return os.path.join(self.settings.dir, remote_path.lstrip('/'))
 
     def get(self, remote_path, local_path):
-        if not os.path.exists(self._join_paths(remote_path)):
+        if not self.exists(remote_path):
             log.error(u"[GET] File not found: %s" % remote_path)
             raise FileNotFound
 
@@ -43,6 +43,17 @@ class LocalStorage(BaseStorage):
                                               self._join_paths(remote_path)))
         try:
             shutil.copy(local_path, self._join_paths(remote_path))
+        except:
+            raise StorageError
+
+    def delete(self, remote_path):
+        if not self.exists(remote_path):
+            log.error(u"[DELETE] File not found: %s" % remote_path)
+            raise FileNotFound
+        try:
+            os.remove(self._join_paths(remote_path))
+            log.info(u"[DELETE] File deleted: "
+                     u"%s" % self._join_paths(remote_path))
         except:
             raise StorageError
 

@@ -5,8 +5,6 @@
 """
 
 
-import os
-import shutil
 import logging
 
 from pymongo import MongoClient
@@ -80,6 +78,21 @@ class MongoDBStorage(BaseStorage):
                     gridin.write(data)
                 gridin.close()
             client.disconnect()
+        except:
+            client.disconnect()
+            raise StorageError
+
+    def delete(self, remote_path):
+        client = self.connect()
+        fs = GridFS(client[self.settings.database])
+        try:
+            fsfile = fs.get_last_version(filename=remote_path)
+            fs.delete(fsfile)
+            log.info(u"[DELETE] File deleted: mongodb:%s" % remote_path)
+        except NoFile:
+            client.disconnect()
+            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
+            raise FileNotFound
         except:
             client.disconnect()
             raise StorageError
