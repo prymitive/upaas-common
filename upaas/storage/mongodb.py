@@ -8,13 +8,13 @@
 import logging
 
 from pymongo import MongoClient
-from pymongo.database import Database
 
 from gridfs import GridFS, NoFile
 
 from upaas.config import base
 from upaas.storage.base import BaseStorage
-from upaas.storage.exceptions import StorageError, FileNotFound
+from upaas.storage.exceptions import StorageError, FileNotFound,\
+    FileAlreadyExists
 
 
 log = logging.getLogger(__name__)
@@ -36,9 +36,9 @@ class MongoDBStorage(BaseStorage):
             mongouri += self.settings.username
             if self.settings.get('password'):
                 mongouri += ':' + self.settings.password
-        mongouri += "@%s:%s/%s" % (self.settings.host,
-                                   self.settings.port,
-                                   self.settings.database)
+            mongouri += "@"
+        mongouri += "%s:%s/%s" % (self.settings.host, self.settings.port,
+                                  self.settings.database)
 
         return MongoClient(mongouri)
 
@@ -59,13 +59,18 @@ class MongoDBStorage(BaseStorage):
             client.disconnect()
             log.error(u"[GET] File not found: mongodb:%s" % remote_path)
             raise FileNotFound
-        except:
+        except Exception, e:
+            log.error(u"[GET] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError
 
     def put(self, local_path, remote_path):
         client = self.connect()
         fs = GridFS(client[self.settings.database])
+
+        if self.exists(remote_path):
+            raise FileAlreadyExists
+
         gridin = fs.new_file(filename=remote_path)
         try:
             with open(local_path, "rb") as source:
@@ -78,7 +83,8 @@ class MongoDBStorage(BaseStorage):
                     gridin.write(data)
                 gridin.close()
             client.disconnect()
-        except:
+        except Exception, e:
+            log.error(u"[PUT] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError
 
@@ -87,13 +93,14 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
         try:
             fsfile = fs.get_last_version(filename=remote_path)
-            fs.delete(fsfile)
+            fs.delete(fsfile._id)
             log.info(u"[DELETE] File deleted: mongodb:%s" % remote_path)
         except NoFile:
             client.disconnect()
             log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound
-        except:
+        except Exception, e:
+            log.error(u"[DELETE] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError
 

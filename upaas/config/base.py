@@ -67,7 +67,12 @@ class StringEntry(ConfigEntry):
 
 
 class IntegerEntry(ConfigEntry):
-    pass
+
+    def validate(self, value):
+        if value is not None and not isinstance(value, int):
+            log.error(u"Value must be integer, %s "
+                      u"given" % value.__class__.__name__)
+            raise ConfigurationError
 
 
 class ListEntry(ConfigEntry):

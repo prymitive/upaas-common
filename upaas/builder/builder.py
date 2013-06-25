@@ -14,6 +14,7 @@ from upaas import distro
 
 from upaas import commands
 from upaas import tar
+from upaas.checksum import calculate_file_sha256
 from upaas.config.base import ConfigurationError
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
@@ -253,9 +254,13 @@ class Builder(object):
         log.info(u"Application package created")
         yield 95
 
+        checksum = calculate_file_sha256(package_path)
+        log.info(u"Package checksum: %s" % checksum)
+        yield 97
+
         try:
             #FIXME remote package name?
-            self.storage.put(package_path, "package")
+            self.storage.put(package_path, checksum)
         except StorageError:
             log.error(u"Error while uploading package")
             _cleanup(directory)

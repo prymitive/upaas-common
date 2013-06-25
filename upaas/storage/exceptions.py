@@ -15,3 +15,7 @@ class StorageError(Exception):
 
 class FileNotFound(StorageError):
     pass
+
+
+class FileAlreadyExists(StorageError):
+    pass

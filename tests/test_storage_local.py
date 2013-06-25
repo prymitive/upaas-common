@@ -68,3 +68,12 @@ def test_put_and_get(storage, empty_dir, empty_file):
     local_path = os.path.join(empty_dir, "xyz")
     storage.get("abc", local_path)
     assert os.path.exists(local_path)
+
+
+def test_put_and_delete(storage, empty_file):
+    storage.put(empty_file, "delete.me")
+    assert os.path.isfile(os.path.join(storage.settings.dir, "delete.me"))
+
+    storage.delete("delete.me")
+    assert os.path.isfile(
+        os.path.join(storage.settings.dir, "delete.me")) is False
