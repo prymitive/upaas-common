@@ -24,6 +24,19 @@ from upaas.storage.exceptions import StorageError
 log = logging.getLogger(__name__)
 
 
+class BuildResult:
+
+    def __init__(self):
+        self.progress = 0
+
+        self.storage = None
+        self.package_path = None
+        self.checksum = None
+
+        self.distro_name = distro.distro_name()
+        self.distro_version = distro.distro_version()
+
+
 class Builder(object):
 
     builder_action_names = ["system"]
@@ -199,6 +212,8 @@ class Builder(object):
         log.info(u"Starting package build (force fresh package: "
                  u"%s)" % force_fresh)
 
+        result = BuildResult()
+
         if not self.has_valid_os_image():
             try:
                 self.bootstrap_os()
@@ -220,46 +235,52 @@ class Builder(object):
             _cleanup(directory)
             raise exceptions.PackageSystemError
         log.info(u"Os image unpacked")
-        yield 10
+        result.progress = 10
+        yield result
 
         if not self.run_actions(self.builder_action_names, workdir, '/'):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
-        yield 20
+        result.progress = 20
+        yield result
 
         if not self.install_packages(workdir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All packages installed")
-        yield 35
+        result.progress = 35
+        yield result
 
         if not self.clone(workdir, chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"Application cloned")
-        yield 40
+        result.progress = 40
+        yield result
 
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
-        yield 85
+        result.progress = 85
+        yield result
 
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
             _cleanup(directory)
             raise exceptions.PackageSystemError
         log.info(u"Application package created")
-        yield 95
+        result.progress = 92
+        yield result
 
         checksum = calculate_file_sha256(package_path)
         log.info(u"Package checksum: %s" % checksum)
-        yield 97
+        result.progress = 96
+        yield result
 
         try:
-            #FIXME remote package name?
             self.storage.put(package_path, checksum)
         except StorageError:
             log.error(u"Error while uploading package")
@@ -267,7 +288,12 @@ class Builder(object):
             raise exceptions.PackageSystemError
 
         _cleanup(directory)
-        yield 100
+
+        result.progress = 100
+        result.storage = self.storage.__class__.__name__
+        result.package_path = checksum
+        result.checksum = checksum
+        yield result
 
     def unpack_os(self, directory, workdir, force_fresh=False):
         #TODO right now we always build fresh package
