@@ -20,5 +20,11 @@ def distro_codename():
     return platform.dist()[2]
 
 
+def distro_arch():
+    return platform.architecture()[0]
+
+
 def distro_image_filename():
-    return u"%s-%s.tar.gz" % (distro_name(), distro_version())
+    #FIXME tar.gz is hardcoded?
+    return u"%s-%s-%s.tar.gz" % (distro_name(), distro_version(),
+                                 distro_arch())
