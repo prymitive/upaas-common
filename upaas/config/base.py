@@ -10,7 +10,7 @@ import os
 import logging
 
 import yaml
-from yaml import Loader, SafeLoader
+from yaml import Loader, SafeLoader, YAMLError
 
 
 log = logging.getLogger(__name__)
@@ -177,6 +177,9 @@ class Config(object):
         except IOError:
             log.error(u"Can't open configuration file '%s'" % path)
             raise ConfigurationError
+        except YAMLError:
+            log.error(u"Can't parse yaml file '%s'" % path)
+            raise ConfigurationError
 
         return cls(content)
 
@@ -281,6 +284,8 @@ def load_config(cls, filename, directories=['.', '/etc/upaas']):
 
     paths = [os.path.join(p, filename) for p in directories]
     if os.environ.get('UPAAS_CONFIG_DIR'):
+        log.info(u"Adding directory '%s' from UPAAS_CONFIG_DIR env "
+                 u"variable" % os.environ.get('UPAAS_CONFIG_DIR'))
         paths = [os.path.join(os.environ.get('UPAAS_CONFIG_DIR'),
                               filename)] + paths
 

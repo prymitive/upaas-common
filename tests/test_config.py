@@ -30,9 +30,21 @@ class ListConfig(base.Config):
     }
 
 
+class ListConfigNoType(base.Config):
+    schema = {
+        u"mylist": base.ListEntry()
+    }
+
+
 class DictConfig(base.Config):
     schema = {
         u"mydict": base.DictEntry(value_type=unicode)
+    }
+
+
+class DictConfigNoType(base.Config):
+    schema = {
+        u"mydict": base.DictEntry()
     }
 
 
@@ -65,6 +77,18 @@ def test_required_entries_from_file():
         print(cfg.folder1.optional_int)
 
 
+def test_loading_from_missing_file():
+    with pytest.raises(base.ConfigurationError):
+        BasicConfig.from_file("/there/is/no/such/file.yaml")
+
+
+def test_loading_from_string():
+    options = "folder1:\n  subfolder1: {required_int: 123}\n" \
+              "required_string: abc\n"
+    cfg = BasicConfig.from_string(options)
+    assert cfg.dump_string() == options
+
+
 def test_dump():
     options = {
         u"required_string": u"abc",
@@ -76,6 +100,20 @@ def test_dump():
     }
     cfg = BasicConfig(options)
     assert cfg.dump() == options
+
+
+def test_dump_string():
+    options = {
+        u"required_string": u"abc",
+        u"folder1": {
+            u"subfolder1": {
+                u"required_int": 123
+            }
+        }
+    }
+    cfg = BasicConfig(options)
+    assert cfg.dump_string() == "folder1:\n  subfolder1: " \
+                                "{required_int: 123}\nrequired_string: abc\n"
 
 
 def test_default_value():
@@ -102,6 +140,14 @@ def test_list_entry_invalid():
         ListConfig({u"mylist": [u"not an int", 1]})
 
 
+def test_list_entry_no_type():
+    cfg = ListConfigNoType({u"mylist": [1, 'a', '', 4]})
+    assert cfg.mylist == [1, 'a', '', 4]
+
+    cfg = ListConfigNoType({})
+    assert cfg.mylist == []
+
+
 def test_dict_entry_valid():
     cfg = DictConfig({u"mydict": {u"keya": u"valuea", u"keyb": u"valueb"}})
     assert cfg.mydict == {u"keya": u"valuea", u"keyb": u"valueb"}
@@ -116,3 +162,33 @@ def test_dict_entry_invalid():
 
     with pytest.raises(base.ConfigurationError):
         DictConfig({u"mydict": {u"not an unicode": 1}})
+
+
+def test_dict_entry_no_type():
+    cfg = DictConfigNoType({u"mydict": {u"keya": u"valuea", u"keyb": 1}})
+    assert cfg.mydict == {u"keya": u"valuea", u"keyb": 1}
+
+    cfg = DictConfigNoType({})
+    assert cfg.mydict == {}
+
+
+def test_load_config_using_path():
+    cfg = base.load_config(BasicConfig, 'test_config.yml',
+                           directories=[os.path.dirname(__file__)])
+    assert cfg is not None
+    assert cfg.required_string == u"abc"
+    assert cfg.folder1.subfolder1.required_int == 123
+
+
+def test_load_config_using_env():
+    os.environ['UPAAS_CONFIG_DIR'] = os.path.dirname(__file__)
+    cfg = base.load_config(BasicConfig, 'test_config.yml')
+    assert cfg is not None
+    assert cfg.required_string == u"abc"
+    assert cfg.folder1.subfolder1.required_int == 123
+
+
+def test_load_config_invalid():
+    cfg = base.load_config(BasicConfig, os.path.basename(__file__),
+                           directories=[os.path.dirname(__file__)])
+    assert cfg is None

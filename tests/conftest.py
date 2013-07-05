@@ -14,13 +14,13 @@ import pytest
 
 @pytest.fixture(scope="function")
 def empty_dir(request):
-    dir = tempfile.mkdtemp(prefix="upaas_testdir_")
+    directory = tempfile.mkdtemp(prefix="upaas_testdir_")
 
     def cleanup():
-        shutil.rmtree(dir)
+        shutil.rmtree(directory)
 
     request.addfinalizer(cleanup)
-    return dir
+    return directory
 
 
 @pytest.fixture(scope="function")

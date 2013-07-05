@@ -17,8 +17,8 @@ from upaas.config.base import ConfigurationError
 
 @pytest.fixture(scope="module")
 def storage(request):
-    dir = tempfile.mkdtemp(prefix="upaas_teststorage_")
-    storage = LocalStorage({'dir': dir})
+    directory = tempfile.mkdtemp(prefix="upaas_teststorage_")
+    storage = LocalStorage({'dir': directory})
 
     def cleanup():
         shutil.rmtree(storage.settings.dir)
