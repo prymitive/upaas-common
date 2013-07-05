@@ -1,0 +1,113 @@
+# uPaaS configuration
+
+
+mongodb:
+  # mongodb database settings
+  host: localhost
+  database: upaas
+  username: upaas
+  password: upaasdev
+
+
+paths:
+  # where to store app files during package build
+  workdir: /var/upaas/workdir
+
+
+storage:
+  # class implementing storage access
+  handler: upaas.storage.local.LocalStorage
+  settings:
+    dir: /var/upaas/storage
+
+
+# commands used to create empty system image
+# variables:
+# %workdir% - chroot directory that should be created
+bootstrap:
+  timelimit: 600
+  # envs are optional
+  env:
+    http_proxy: http://localhost:3128/
+    LC_ALL: C
+    LANG: C
+  commands:
+    - debootstrap --components=main,universe,multiverse,restricted `lsb_release -sc` %workdir%
+
+
+commands:
+  # how long any action command can take to execute
+  timelimit: 600
+  # how to install or remove package
+  install:
+    env:
+      http_proxy: http://localhost:3128/
+      DEBIAN_FRONTEND: noninteractive
+      LC_ALL: C
+      LANG: C
+    cmd: apt-get install -y %package%
+  uninstall:
+    env:
+      DEBIAN_FRONTEND: noninteractive
+      LC_ALL: C
+      LANG: C
+    cmd: apt-get remove -y %package%
+
+
+interpreters:
+
+  env:
+    LC_ALL: C
+    LANG: C
+
+  packages:
+    - build-essential
+
+  actions:
+    setup:
+      system:
+        - apt-get update
+        - apt-get dist-upgrade -y
+
+  ruby:
+    any:
+      env:
+        RAILS_ENV: production
+      actions:
+        setup:
+          main:
+            - gem install bundler
+            - bundle install --deployment --without test development
+    1.8.7:
+      packages:
+        - ruby1.8
+        - ruby1.8-dev
+        - rubygems
+    1.9.3:
+      packages:
+        - ruby1.9.1
+        - ruby1.9.1-dev
+
+
+  python:
+    any:
+      actions:
+        setup:
+          main:
+            - pip install -qMU -r requirements.txt
+    2.7:
+      packages:
+        - python2.7
+        - python2.7-dev
+        - python-pip
+    3.2:
+      packages:
+        - python3.2
+        - python3.2-dev
+        - python-pip
+
+  php:
+    5.3:
+      packages:
+        - php5-dev
+        - php-pear

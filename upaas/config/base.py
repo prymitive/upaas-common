@@ -5,6 +5,7 @@
 """
 
 
+import types
 import os
 import logging
 
@@ -190,8 +191,9 @@ class Config(object):
         log.debug(u"Parsing settings %s with schema %s" % (content,
                                                            self.schema))
 
-        if not isinstance(content, dict):
-            log.error(u"Invalid configuration")
+        if not isinstance(content, (types.DictionaryType, types.NoneType)):
+            log.error(u"Invalid configuration, expected dict but got "
+                      u"%s" % content.__class__.__name__)
             raise ConfigurationError
 
         self.content = content
@@ -199,8 +201,12 @@ class Config(object):
         self.children = set()
 
         for key, value in self.schema.items():
+            if content is None and isinstance(value, ConfigEntry) \
+                    and value.required:
+                log.error(u"Empty configuration")
+                raise ConfigurationError
             if isinstance(value, dict):
-                setattr(self, key, Config(content.get(key), _schema=value))
+                setattr(self, key, Config(content.get(key, {}), _schema=value))
                 self.children.add(key)
             elif isinstance(value, WildcardEntry):
                 self.entries[key] = (content or {}).get(key)

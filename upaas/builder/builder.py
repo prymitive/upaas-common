@@ -39,6 +39,10 @@ class BuildResult:
 
 class Builder(object):
 
+    #TODO stage decorators
+    # @stage('action_system', 95%)
+    # time()
+
     builder_action_names = ["system"]
     app_action_names = ["before", "main", "after"]
 

@@ -18,6 +18,30 @@ class UPaaSConfig(base.Config):
             "password": base.StringEntry(),
             "database": base.StringEntry(default="upaas"),
         },
+        "paths": {
+            "workdir": base.FSPathEntry(required=True, must_exist=True),
+        },
+        "storage": {
+            "handler": base.StringEntry(required=True),
+            "settings": base.WildcardEntry(),
+        },
+        "bootstrap": {
+            "timelimit": base.IntegerEntry(required=True),
+            "env": base.DictEntry(value_type=unicode),
+            "commands": base.ScriptEntry(required=True),
+        },
+        "commands": {
+            "timelimit": base.IntegerEntry(required=True),
+            "install": {
+                "env": base.DictEntry(value_type=unicode),
+                "cmd": base.StringEntry(required=True),
+            },
+            "uninstall": {
+                "env": base.DictEntry(value_type=unicode),
+                "cmd": base.StringEntry(required=True),
+            },
+        },
+        "interpreters": base.WildcardEntry(),
     }
 
 
