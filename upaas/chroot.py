@@ -42,7 +42,8 @@ class Chroot(object):
         os.chroot('.')
         os.close(self.realroot)
         os.chdir(self.realdir)
-        os.putenv("HOME", self.home)
+        if self.home is not None:
+            os.putenv("HOME", self.home)
         log.info("Exited from chroot at '%s'" % self.root)
 
     def escape(self):
