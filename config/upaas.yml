@@ -66,8 +66,13 @@ interpreters:
   actions:
     setup:
       system:
+        - echo "#!/bin/sh\n" > /usr/sbin/policy-rc.d
+        - echo "exit 101\n" >> /usr/sbin/policy-rc.d
+        - chmod 755 /usr/sbin/policy-rc.d
         - apt-get update
         - apt-get dist-upgrade -y
+      finalize:
+        - echo "final action"
 
   ruby:
     any:

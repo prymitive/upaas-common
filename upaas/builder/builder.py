@@ -45,6 +45,7 @@ class Builder(object):
 
     builder_action_names = ["system"]
     app_action_names = ["before", "main", "after"]
+    finalize_action_names = ["finalize"]
 
     def __init__(self, builder_config, metadata):
         """
@@ -76,9 +77,9 @@ class Builder(object):
 
         ret = {}
 
-        # builder actions are special, they cannot be declared by app, only
-        # by builder config
-        for name in self.builder_action_names:
+        # builder and finalize actions are special, they cannot be declared
+        # by app, only by builder config
+        for name in self.builder_action_names + self.finalize_action_names:
             ret[name] = []
             _run_action(self.config.interpreters, name, ret)
 
@@ -104,7 +105,8 @@ class Builder(object):
             else:
                 log.debug(u"Got '%s' action from app meta" % name)
 
-        for name in self.builder_action_names + self.app_action_names:
+        for name in self.builder_action_names + self.app_action_names + \
+                self.finalize_action_names:
             actions = ret.get(name, [])
             log.info(u"Commands for '%s' action:" % name)
             for action in actions:
@@ -206,7 +208,6 @@ class Builder(object):
         """
         Build a package
 
-        :param meta: Package metadata passed as Config instance.
         :param force_fresh: Force fresh package built using empty system image.
         """
         def _cleanup(directory):
@@ -228,8 +229,9 @@ class Builder(object):
                 log.error(u"Error during uploading os image, aborting")
                 raise exceptions.PackageSystemError
 
+        # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
-                                     prefix="upaas_package_")
+                                     prefix="upaas_package_").encode("utf-8")
         workdir = os.path.join(directory, "workdir")
         chroot_homedir = "/home/app"
         os.mkdir(workdir, 0755)
@@ -269,6 +271,13 @@ class Builder(object):
             raise exceptions.PackageUserError
         log.info(u"All application actions executed")
         result.progress = 85
+        yield result
+
+        if not self.run_actions(self.finalize_action_names, workdir, '/'):
+            _cleanup(directory)
+            raise exceptions.PackageSystemError
+        log.info(u"All finale actions executed")
+        result.progress = 88
         yield result
 
         package_path = os.path.join(directory, "package")
