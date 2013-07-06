@@ -10,13 +10,22 @@ import time
 
 import pytest
 
+from pymongo import MongoClient
+
 from upaas.storage.mongodb import MongoDBStorage
 from upaas.config.base import ConfigurationError
 
 
 @pytest.fixture(scope="module")
 def storage(request):
-    storage = MongoDBStorage({"database": "testrun-%d" % time.time()})
+    dbname = "testrun-%d" % time.time()
+    storage = MongoDBStorage({"database": dbname})
+
+    def cleanup():
+        client = MongoClient()
+        client.drop_database(dbname)
+    request.addfinalizer(cleanup)
+
     return storage
 
 

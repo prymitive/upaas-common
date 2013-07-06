@@ -37,8 +37,7 @@ class MongoDBStorage(BaseStorage):
             if self.settings.get('password'):
                 mongouri += ':' + self.settings.password
             mongouri += "@"
-        mongouri += "%s:%s/%s" % (self.settings.host, self.settings.port,
-                                  self.settings.database)
+        mongouri += "%s:%s" % (self.settings.host, self.settings.port)
 
         return MongoClient(mongouri)
 
