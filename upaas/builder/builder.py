@@ -35,6 +35,7 @@ class BuildResult:
 
         self.distro_name = distro.distro_name()
         self.distro_version = distro.distro_version()
+        self.distro_arch = distro.distro_arch()
 
 
 class Builder(object):
