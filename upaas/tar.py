@@ -30,9 +30,19 @@ def pack_tar(source, archive_path, timeout=None):
         except OSError:
             pass
 
+    cmd = "tar -czpf %s *" % archive_path
+
+    # check if pigz is installed
     try:
-        commands.execute("tar -czpf %s *" % archive_path, timeout=timeout,
-                         cwd=source)
+        commands.execute("pigz -V", timeout=10)
+    except commands.CommandError:
+        pass
+    else:
+        cmd = "tar --use-compress-program=pigz -cpf %s *" % archive_path
+        log.info(u"Using pigz for parallel compression")
+
+    try:
+        commands.execute(cmd, timeout=timeout, cwd=source)
     except commands.CommandTimeout:
         log.error(u"Tar command was taking too long and it was killed")
         _cleanup(archive_path)

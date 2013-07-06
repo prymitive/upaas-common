@@ -19,6 +19,7 @@ from upaas.config.base import ConfigurationError
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
 from upaas.storage.exceptions import StorageError
+from upaas.utils import bytes_to_human
 
 
 log = logging.getLogger(__name__)
@@ -30,8 +31,9 @@ class BuildResult:
         self.progress = 0
 
         self.storage = None
-        self.package_path = None
+        self.filename = None
         self.checksum = None
+        self.bytes = 0
 
         self.distro_name = distro.distro_name()
         self.distro_version = distro.distro_version()
@@ -205,30 +207,34 @@ class Builder(object):
                           u"configuration")
                 raise exceptions.InvalidConfiguration
 
-    def build_package(self, force_fresh=False):
+    def build_package(self, system_filename=None):
         """
         Build a package
 
-        :param force_fresh: Force fresh package built using empty system image.
+        :param system_filename: Use given file as base system, if None empty
+                                system image will be used.
         """
         def _cleanup(directory):
             log.info(u"Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
-        log.info(u"Starting package build (force fresh package: "
-                 u"%s)" % force_fresh)
+        if system_filename and self.storage.exists(system_filename):
+            log.info(u"Starting package build using package "
+                     u"%s" % system_filename)
+        else:
+            system_filename = None
+            log.info(u"Starting package build using empty system image")
+            if not self.has_valid_os_image():
+                try:
+                    self.bootstrap_os()
+                except exceptions.OSBootstrapError:
+                    log.error(u"Error during os bootstrap, aborting")
+                    raise exceptions.PackageSystemError
+                except StorageError:
+                    log.error(u"Error during uploading os image, aborting")
+                    raise exceptions.PackageSystemError
 
         result = BuildResult()
-
-        if not self.has_valid_os_image():
-            try:
-                self.bootstrap_os()
-            except exceptions.OSBootstrapError:
-                log.error(u"Error during os bootstrap, aborting")
-                raise exceptions.PackageSystemError
-            except StorageError:
-                log.error(u"Error during uploading os image, aborting")
-                raise exceptions.PackageSystemError
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
@@ -238,7 +244,8 @@ class Builder(object):
         os.mkdir(workdir, 0755)
         log.info(u"Working directory created at '%s'" % workdir)
 
-        if not self.unpack_os(directory, workdir, force_fresh=force_fresh):
+        if not self.unpack_os(directory, workdir,
+                              system_filename=system_filename):
             _cleanup(directory)
             raise exceptions.PackageSystemError
         log.info(u"Os image unpacked")
@@ -259,10 +266,15 @@ class Builder(object):
         result.progress = 35
         yield result
 
-        if not self.clone(workdir, chroot_homedir):
-            _cleanup(directory)
-            raise exceptions.PackageUserError
-        log.info(u"Application cloned")
+        if system_filename:
+            if not self.update(workdir, chroot_homedir):
+                _cleanup(directory)
+                raise exceptions.PackageUserError
+        else:
+            if not self.clone(workdir, chroot_homedir):
+                _cleanup(directory)
+                raise exceptions.PackageUserError
+        log.info(u"Application repository ready")
         result.progress = 40
         yield result
 
@@ -285,7 +297,9 @@ class Builder(object):
         if not tar.pack_tar(workdir, package_path):
             _cleanup(directory)
             raise exceptions.PackageSystemError
-        log.info(u"Application package created")
+        result.bytes = os.path.getsize(package_path)
+        log.info(u"Application package created, "
+                 u"%s" % bytes_to_human(result.bytes))
         result.progress = 92
         yield result
 
@@ -305,16 +319,18 @@ class Builder(object):
 
         result.progress = 100
         result.storage = self.storage.__class__.__name__
-        result.package_path = checksum
+        result.filename = checksum
         result.checksum = checksum
         yield result
 
-    def unpack_os(self, directory, workdir, force_fresh=False):
-        #TODO right now we always build fresh package
-        os_image_path = os.path.join(directory, distro.distro_image_filename())
-        log.info(u"Fetching os image")
+    def unpack_os(self, directory, workdir, system_filename=None):
+        if not system_filename:
+            system_filename = distro.distro_image_filename()
+
+        os_image_path = os.path.join(directory, "os.image")
+        log.info(u"Fetching os image '%s'" % system_filename)
         try:
-            self.storage.get(distro.distro_image_filename(), os_image_path)
+            self.storage.get(system_filename, os_image_path)
         except StorageError:
             log.error(u"Storage error while fetching os image")
             return False
@@ -345,6 +361,7 @@ class Builder(object):
         return True
 
     def clone(self, workdir, homedir):
+        log.info(u"Updating repository to '%s'" % homedir)
         with Chroot(workdir):
             for cmd in self.metadata.repository.clone:
                 cmd = cmd.replace("%destination%", homedir)
@@ -354,11 +371,28 @@ class Builder(object):
                                      env=self.metadata.repository.env,
                                      output_loglevel=logging.INFO)
                 except commands.CommandTimeout:
-                    log.error(u"Cloning repository is taking too long, "
-                              u"aborting")
+                    log.error(u"Command is taking too long, aborting")
                     return False
                 except commands.CommandFailed:
-                    log.error(u"Cloning failed")
+                    log.error(u"Command failed")
+                    return False
+        return True
+
+    def update(self, workdir, homedir):
+        log.info(u"Updating repository in '%s'" % homedir)
+        with Chroot(workdir, workdir=homedir):
+            for cmd in self.metadata.repository.update:
+                cmd = cmd.replace("%destination%", homedir)
+                try:
+                    commands.execute(cmd,
+                                     timeout=self.config.commands.timelimit,
+                                     env=self.metadata.repository.env,
+                                     output_loglevel=logging.INFO)
+                except commands.CommandTimeout:
+                    log.error(u"Command is taking too long, aborting")
+                    return False
+                except commands.CommandFailed:
+                    log.error(u"Command failed")
                     return False
         return True
 
