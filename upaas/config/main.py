@@ -20,6 +20,7 @@ class UPaaSConfig(base.Config):
         },
         "paths": {
             "workdir": base.FSPathEntry(required=True, must_exist=True),
+            "apps": base.FSPathEntry(required=True, must_exist=True),
         },
         "storage": {
             "handler": base.StringEntry(required=True),

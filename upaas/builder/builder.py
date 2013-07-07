@@ -15,9 +15,9 @@ from upaas import distro
 from upaas import commands
 from upaas import tar
 from upaas.checksum import calculate_file_sha256
-from upaas.config.base import ConfigurationError
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
+from upaas.storage.utils import find_storage_handler
 from upaas.storage.exceptions import StorageError
 from upaas.utils import bytes_to_human
 
@@ -61,7 +61,7 @@ class Builder(object):
         self.actions = self.parse_actions(metadata)
         self.envs = self.parse_envs(metadata)
         self.os_packages = self.parse_packages(metadata)
-        self.storage = self.find_storage_handler()
+        self.storage = find_storage_handler(self.config)
 
     def parse_actions(self, meta):
         """
@@ -180,32 +180,6 @@ class Builder(object):
             except KeyError:
                 pass
         return ret
-
-    def find_storage_handler(self):
-        """
-        Will try to find storage handler class user has set in configuration,
-        create instance of it and return that instance.
-        """
-        storage_handler = None
-        name = self.config.storage.handler
-        storage_module = ".".join(name.split(".")[0:len(name.split(".")) - 1])
-        storage_class = name.split(".")[len(name.split(".")) - 1]
-        try:
-            exec("from %s import %s as storage_handler" % (
-                storage_module, storage_class))
-        except ImportError:
-            log.error(u"Storage handler '%s' could not be "
-                      u"loaded" % self.config.storage.handler)
-            raise exceptions.InvalidConfiguration
-        else:
-            log.info(u"Loaded storage handler: "
-                     u"%s" % self.config.storage.handler)
-            try:
-                return storage_handler(self.config.storage.settings)
-            except ConfigurationError:
-                log.error(u"Storage handler failed to initialize with given "
-                          u"configuration")
-                raise exceptions.InvalidConfiguration
 
     def build_package(self, system_filename=None):
         """
