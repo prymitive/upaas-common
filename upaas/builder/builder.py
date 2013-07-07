@@ -289,7 +289,7 @@ class Builder(object):
         if not self.run_actions(self.finalize_action_names, workdir, '/'):
             _cleanup(directory)
             raise exceptions.PackageSystemError
-        log.info(u"All finale actions executed")
+        log.info(u"All final actions executed")
         result.progress = 88
         yield result
 
