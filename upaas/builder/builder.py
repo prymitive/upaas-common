@@ -47,6 +47,7 @@ class Builder(object):
     # time()
 
     builder_action_names = ["system"]
+    interpreter_action_names = ["interpreter"]
     app_action_names = ["before", "main", "after"]
     finalize_action_names = ["finalize"]
 
@@ -57,6 +58,11 @@ class Builder(object):
         """
         self.metadata = metadata
         self.config = builder_config
+
+        self.interpreter_version = self.select_interpreter_version(metadata)
+        if not self.interpreter_version:
+            log.error(u"Unsupported interpreter version")
+            raise exceptions.PackageUserError
 
         self.actions = self.parse_actions(metadata)
         self.envs = self.parse_envs(metadata)
@@ -86,6 +92,15 @@ class Builder(object):
             ret[name] = []
             _run_action(self.config.interpreters, name, ret)
 
+        # interpreter action can also be declared only by builder config,
+        # but it is taken from interpreter settings key
+        for name in self.interpreter_action_names:
+            try:
+                ret[name] = self.config.interpreters[meta.interpreter.type][
+                    self.interpreter_version]["actions"]["setup"][name]
+            except KeyError:
+                ret[name] = []
+
         for name in self.app_action_names:
             ret[name] = []
 
@@ -93,7 +108,7 @@ class Builder(object):
             _run_action(self.config.interpreters, name, ret)
 
             # interpreter actions
-            for version in ["any"] + meta.interpreter.versions:
+            for version in ["any"] + [self.interpreter_version]:
                 _run_action(
                     self.config.interpreters[meta.interpreter.type][version],
                     name, ret)
@@ -108,7 +123,8 @@ class Builder(object):
             else:
                 log.debug(u"Got '%s' action from app meta" % name)
 
-        for name in self.builder_action_names + self.app_action_names + \
+        for name in self.builder_action_names + \
+                self.interpreter_action_names + self.app_action_names + \
                 self.finalize_action_names:
             actions = ret.get(name, [])
             log.info(u"Commands for '%s' action:" % name)
@@ -132,7 +148,7 @@ class Builder(object):
                     u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
         except KeyError:
             pass
-        for version in ["any"] + meta.interpreter.versions:
+        for version in ["any"] + [self.interpreter_version]:
             try:
                 value = self.config.interpreters[meta.interpreter.type][
                     version]["env"]
@@ -163,7 +179,7 @@ class Builder(object):
                           u"for all interpreters" % pkg)
         except KeyError:
             pass
-        for version in ["any"] + meta.interpreter.versions:
+        for version in ["any"] + [self.interpreter_version]:
             try:
                 for pkg in self.config.interpreters[meta.interpreter.type][
                         version]["packages"]:
@@ -226,10 +242,13 @@ class Builder(object):
         result.progress = 10
         yield result
 
-        if not self.run_actions(self.builder_action_names, workdir, '/'):
+        log.info(u"Using interpreter %s, version %s" % (
+            self.metadata.interpreter.type, self.interpreter_version))
+
+        if not self.run_actions(self.builder_action_names, workdir):
             _cleanup(directory)
             raise exceptions.PackageUserError
-        log.info(u"All application actions executed")
+        log.info(u"All builder actions executed")
         result.progress = 20
         yield result
 
@@ -238,6 +257,13 @@ class Builder(object):
             raise exceptions.PackageUserError
         log.info(u"All packages installed")
         result.progress = 35
+        yield result
+
+        if not self.run_actions(self.interpreter_action_names, workdir, '/'):
+            _cleanup(directory)
+            raise exceptions.PackageSystemError
+        log.info(u"All interpreter actions executed")
+        result.progress = 40
         yield result
 
         if system_filename:
@@ -249,7 +275,7 @@ class Builder(object):
                 _cleanup(directory)
                 raise exceptions.PackageUserError
         log.info(u"Application repository ready")
-        result.progress = 40
+        result.progress = 45
         yield result
 
         if not self.run_actions(self.app_action_names, workdir,
@@ -377,7 +403,7 @@ class Builder(object):
                     return False
         return True
 
-    def run_actions(self, actions, workdir, homedir):
+    def run_actions(self, actions, workdir, homedir='/'):
         for name in actions:
             log.info(u"Executing '%s' setup actions" % name)
             for cmd in self.actions[name]:
@@ -428,7 +454,7 @@ class Builder(object):
             log.info(u"Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
-        log.info(u"Bootstrapping os image using")
+        log.info(u"Bootstrapping new os image")
 
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
                                      prefix="upaas_bootstrap_")
@@ -462,3 +488,14 @@ class Builder(object):
         log.info(u"Image uploaded")
         _cleanup(directory)
         log.info(u"All done")
+
+    def select_interpreter_version(self, meta):
+        #TODO right now we just pick the first version from the list
+        # that is described in configuration, make it more smart
+        # so that we pick up the *highest* supported version
+        for version in meta.interpreter.versions:
+            try:
+                _ = self.config.interpreters[meta.interpreter.type][version]
+                return version
+            except KeyError:
+                pass
