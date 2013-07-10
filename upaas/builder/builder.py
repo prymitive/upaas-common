@@ -267,6 +267,13 @@ class Builder(object):
         result.progress = 88
         yield result
 
+        if not self.chown_app_dir(workdir, chroot_homedir):
+            _cleanup(directory)
+            raise exceptions.PackageSystemError
+        log.info(u"Owner of application directory updated")
+        result.progress = 89
+        yield result
+
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
             _cleanup(directory)
@@ -274,7 +281,7 @@ class Builder(object):
         result.bytes = os.path.getsize(package_path)
         log.info(u"Application package created, "
                  u"%s" % bytes_to_human(result.bytes))
-        result.progress = 92
+        result.progress = 93
         yield result
 
         checksum = calculate_file_sha256(package_path)
@@ -380,12 +387,27 @@ class Builder(object):
                             cmd, timeout=self.config.commands.timelimit,
                             env=self.envs, output_loglevel=logging.INFO)
                     except commands.CommandTimeout:
-                        log.error(u"Command is taking to long to execute, "
+                        log.error(u"Command is taking too long to execute, "
                                   u"aborting")
                         return False
                     except commands.CommandFailed:
                         log.error(u"Command failed")
                         return False
+        return True
+
+    def chown_app_dir(self, workdir, homedir):
+        cmd = "chown -R %s:%s %s" % (self.config.apps.uid,
+                                     self.config.apps.gid, homedir)
+        with Chroot(workdir):
+            try:
+                commands.execute(cmd, timeout=self.config.commands.timelimit,
+                                 output_loglevel=logging.INFO)
+            except commands.CommandTimeout:
+                log.error(u"chown is taking too long to execute, aborting")
+                return False
+            except commands.CommandFailed:
+                log.error(u"chown failed")
+                return False
         return True
 
     def has_valid_os_image(self):

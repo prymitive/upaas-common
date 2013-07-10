@@ -42,6 +42,10 @@ class UPaaSConfig(base.Config):
                 "cmd": base.StringEntry(required=True),
             },
         },
+        "apps": {
+            "uid": base.StringEntry(required=True),
+            "gid": base.StringEntry(required=True),
+        },
         "interpreters": base.WildcardEntry(),
     }
 
