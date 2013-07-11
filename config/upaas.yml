@@ -104,8 +104,8 @@ interpreters:
       actions:
         setup:
           interpreter:
-            - update-alternatives --remove-all gem
-            - update-alternatives --install /usr/bin/ruby ruby /usr/bin/ruby1.9.1 400 --slave /usr/bin/ri ri /usr/bin/ri1.9.1 --slave /usr/bin/irb irb /usr/bin/irb1.9.1 --slave /usr/bin/gem gem /usr/bin/gem1.9.1
+            - update-alternatives --force --install /usr/bin/gem gem /usr/bin/gem1.9.1 400
+            - update-alternatives --force --install /usr/bin/ruby ruby /usr/bin/ruby1.9.1 400 --slave /usr/bin/ri ri /usr/bin/ri1.9.1 --slave /usr/bin/irb irb /usr/bin/irb1.9.1
             - ruby -v
 
 
