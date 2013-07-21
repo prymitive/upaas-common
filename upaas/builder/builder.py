@@ -29,13 +29,22 @@ log = logging.getLogger(__name__)
 class BuildResult:
 
     def __init__(self):
+        # % progress
         self.progress = 0
 
+        # filename of the package used to build this package
+        self.parent = None
+
+        # selected interpreter version
         self.interpreter_version = None
 
+        # class of the storage this package was uploaded to
         self.storage = None
+        # package filename
         self.filename = None
+        # package checksum
         self.checksum = None
+        # package size
         self.bytes = 0
 
         self.distro_name = distro.distro_name()
@@ -49,7 +58,6 @@ class Builder(object):
     # @stage('action_system', 95%)
     # time()
 
-    #FIXME action(s) only for fresh packages?
     builder_action_names = ["system"]
     interpreter_action_names = ["interpreter"]
     app_action_names = ["before", "main", "after"]
@@ -217,6 +225,7 @@ class Builder(object):
             log.info(u"Starting package build using package "
                      u"%s" % system_filename)
         else:
+            self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
             log.info(u"Starting package build using empty system image")
             if not self.has_valid_os_image():
@@ -230,6 +239,7 @@ class Builder(object):
                     raise exceptions.PackageSystemError
 
         result = BuildResult()
+        result.parent = system_filename
         result.interpreter_version = self.interpreter_version
 
         # directory is encoded into string to prevent unicode errors
@@ -239,6 +249,7 @@ class Builder(object):
         chroot_homedir = "/home/app"
         os.mkdir(workdir, 0755)
         log.info(u"Working directory created at '%s'" % workdir)
+        self.envs['HOME'] = chroot_homedir
 
         if not self.unpack_os(directory, workdir,
                               system_filename=system_filename):
