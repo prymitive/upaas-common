@@ -45,5 +45,23 @@ class BaseStorage(object):
     def exists(self, remote_path):
         """
         Check if given path (file or directory) exists on storage.
+
+        :param remote_path: Path of the remote file to be checked.
+        """
+        raise NotImplementedError
+
+    def size(self, remote_path):
+        """
+        Return size of the file.
+
+        :param remote_path: Path of the remote file.
+        """
+        raise NotImplementedError
+
+    def mtime(self, remote_path):
+        """
+        Return modification time of the file as datetime object.
+
+        :param remote_path: Path of the remote file to be checked.
         """
         raise NotImplementedError

@@ -109,3 +109,39 @@ class MongoDBStorage(BaseStorage):
         ret = fs.exists(filename=remote_path)
         client.disconnect()
         return ret
+
+    def size(self, remote_path):
+        client = self.connect()
+        fs = GridFS(client[self.settings.database])
+        try:
+            fsfile = fs.get_last_version(filename=remote_path)
+        except NoFile:
+            client.disconnect()
+            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
+            raise FileNotFound
+        except Exception, e:
+            log.error(u"[DELETE] Unhandled error: %s" % e)
+            client.disconnect()
+            raise StorageError
+        else:
+            size = fsfile.length
+            client.disconnect()
+            return size
+
+    def mtime(self, remote_path):
+        client = self.connect()
+        fs = GridFS(client[self.settings.database])
+        try:
+            fsfile = fs.get_last_version(filename=remote_path)
+        except NoFile:
+            client.disconnect()
+            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
+            raise FileNotFound
+        except Exception, e:
+            log.error(u"[DELETE] Unhandled error: %s" % e)
+            client.disconnect()
+            raise StorageError
+        else:
+            timestamp = fsfile.upload_date
+            client.disconnect()
+            return timestamp

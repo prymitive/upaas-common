@@ -8,18 +8,19 @@
 import os
 import tempfile
 import shutil
+import datetime
 import logging
 
 from upaas import distro
 
 from upaas import commands
 from upaas import tar
+from upaas import utils
 from upaas.checksum import calculate_file_sha256
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
 from upaas.storage.utils import find_storage_handler
 from upaas.storage.exceptions import StorageError
-from upaas.utils import bytes_to_human
 
 
 log = logging.getLogger(__name__)
@@ -29,6 +30,8 @@ class BuildResult:
 
     def __init__(self):
         self.progress = 0
+
+        self.interpreter_version = None
 
         self.storage = None
         self.filename = None
@@ -59,7 +62,8 @@ class Builder(object):
         self.metadata = metadata
         self.config = builder_config
 
-        self.interpreter_version = self.select_interpreter_version(metadata)
+        self.interpreter_version = utils.select_best_version(self.config,
+                                                             metadata)
         if not self.interpreter_version:
             log.error(u"Unsupported interpreter version")
             raise exceptions.PackageUserError
@@ -225,6 +229,7 @@ class Builder(object):
                     raise exceptions.PackageSystemError
 
         result = BuildResult()
+        result.interpreter_version = self.interpreter_version
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
@@ -306,7 +311,7 @@ class Builder(object):
             raise exceptions.PackageSystemError
         result.bytes = os.path.getsize(package_path)
         log.info(u"Application package created, "
-                 u"%s" % bytes_to_human(result.bytes))
+                 u"%s" % utils.bytes_to_human(result.bytes))
         result.progress = 93
         yield result
 
@@ -443,7 +448,13 @@ class Builder(object):
         if not self.storage.exists(distro.distro_image_filename()):
             return False
 
-        #TODO check os image mtime
+        os_mtime = self.storage.mtime(distro.distro_image_filename())
+        delta = datetime.datetime.now() - os_mtime
+        if delta > datetime.timedelta(days=self.config.bootstrap.maxage):
+            log.info(u"OS image is too old (%d days)" % delta.days)
+            self.storage.delete(distro.distro_image_filename())
+            return False
+
         return True
 
     def bootstrap_os(self):
@@ -488,14 +499,3 @@ class Builder(object):
         log.info(u"Image uploaded")
         _cleanup(directory)
         log.info(u"All done")
-
-    def select_interpreter_version(self, meta):
-        #TODO right now we just pick the first version from the list
-        # that is described in configuration, make it more smart
-        # so that we pick up the *highest* supported version
-        for version in meta.interpreter.versions:
-            try:
-                _ = self.config.interpreters[meta.interpreter.type][version]
-                return version
-            except KeyError:
-                pass

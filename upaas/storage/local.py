@@ -8,6 +8,7 @@
 import os
 import shutil
 import logging
+import datetime
 
 from upaas.config import base
 from upaas.storage.base import BaseStorage
@@ -59,3 +60,10 @@ class LocalStorage(BaseStorage):
 
     def exists(self, remote_path):
         return os.path.exists(self._join_paths(remote_path))
+
+    def size(self, remote_path):
+        return os.path.getsize(self._join_paths(remote_path))
+
+    def mtime(self, remote_path):
+        return datetime.datetime.fromtimestamp(os.path.getmtime(
+            self._join_paths(remote_path)))

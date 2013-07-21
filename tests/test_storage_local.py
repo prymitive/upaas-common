@@ -8,6 +8,7 @@
 import os
 import shutil
 import tempfile
+import datetime
 
 import pytest
 
@@ -77,3 +78,22 @@ def test_put_and_delete(storage, empty_file):
     storage.delete("delete.me")
     assert os.path.isfile(
         os.path.join(storage.settings.dir, "delete.me")) is False
+
+
+def test_size_empty(storage, empty_file):
+    storage.put(empty_file, "empty.file")
+    assert storage.size("empty.file") == 0
+
+
+def test_size_not_empty(storage, empty_file):
+    with open(empty_file, 'w') as f:
+        f.write('123456789')
+
+    storage.put(empty_file, "not-empty.file")
+    assert storage.size("not-empty.file") == 9
+
+
+def test_mtime(storage, empty_file):
+    storage.put(empty_file, "mtime.check")
+    assert storage.mtime("mtime.check") == datetime.datetime.fromtimestamp(
+        os.path.getmtime(os.path.join(storage.settings.dir, "mtime.check")))
