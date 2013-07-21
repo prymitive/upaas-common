@@ -49,6 +49,7 @@ class Builder(object):
     # @stage('action_system', 95%)
     # time()
 
+    #FIXME action(s) only for fresh packages?
     builder_action_names = ["system"]
     interpreter_action_names = ["interpreter"]
     app_action_names = ["before", "main", "after"]
