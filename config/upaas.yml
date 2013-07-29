@@ -12,6 +12,7 @@ mongodb:
 paths:
   # where to store app files during package build
   workdir: /var/upaas/workdir
+  apps: /var/upaas/apps
 
 
 storage:
@@ -62,7 +63,10 @@ apps:
   uid: www-data
   # name or gid of group that will be used to run app inside namespace
   gid: www-data
-
+  # app directory inside the chroot
+  home: /home/app
+  # automatic domain for apps
+  domain: upaas.local
 
 interpreters:
 
@@ -88,19 +92,28 @@ interpreters:
     any:
       env:
         RAILS_ENV: production
+      uwsgi:
+        options:
+          rack: config.ru
+          remap-modifier: 7:0
+          check-static: public
       actions:
         setup:
           main:
             - gem install bundler
             - bundle install --deployment --without test development
     1.8.7:
-      plugin: rack187
+      uwsgi:
+        options:
+          plugin: rack187
       packages:
         - ruby1.8
         - ruby1.8-dev
         - rubygems
     1.9.3:
-      plugin: rack193
+      uwsgi:
+        options:
+          plugin: rack193
       packages:
         - ruby1.9.1
         - ruby1.9.1-dev
@@ -115,7 +128,9 @@ interpreters:
   python:
 
     2.7:
-      plugin: python27
+      uwsgi:
+        options:
+          plugin: python27
       packages:
         - python2.7
         - python2.7-dev
@@ -125,7 +140,9 @@ interpreters:
           main:
             - pip install -qMU -r requirements.txt
     3.2:
-      plugin: python32
+      uwsgi:
+        options:
+          plugin: python32
       packages:
         - python3.2
         - python3.2-dev
@@ -137,7 +154,9 @@ interpreters:
 
   php:
     5.3:
-      plugin: php53
+      uwsgi:
+        options:
+          plugin: php53
       packages:
         - php5-dev
         - php-pear
@@ -147,3 +166,10 @@ uwsgi:
   options:
     autoload: true
     plugins-dir: /usr/local/lib/uwsgi
+    master: true
+    vacuum: true
+    no-orphans: true
+    post-buffering: 4096
+    buffer-size: 8192
+    memory-report: true
+    auto-procname: true

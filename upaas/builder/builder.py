@@ -246,7 +246,7 @@ class Builder(object):
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
                                      prefix="upaas_package_").encode("utf-8")
         workdir = os.path.join(directory, "workdir")
-        chroot_homedir = "/home/app"
+        chroot_homedir = self.config.apps.home
         os.mkdir(workdir, 0755)
         log.info(u"Working directory created at '%s'" % workdir)
         self.envs['HOME'] = chroot_homedir

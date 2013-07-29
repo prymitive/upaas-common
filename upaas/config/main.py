@@ -46,6 +46,8 @@ class UPaaSConfig(base.Config):
         "apps": {
             "uid": base.StringEntry(required=True),
             "gid": base.StringEntry(required=True),
+            "home": base.StringEntry(required=True),
+            "domain": base.StringEntry(default="upaas.local"),
         },
         "interpreters": base.WildcardEntry(),
     }
