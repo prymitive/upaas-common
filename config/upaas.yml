@@ -13,6 +13,7 @@ paths:
   # where to store app files during package build
   workdir: /var/upaas/workdir
   apps: /var/upaas/apps
+  vassals: /etc/upaas/vassals
 
 
 storage:
@@ -73,6 +74,9 @@ interpreters:
   env:
     LC_ALL: C
     LANG: C
+  uwsgi:
+    # base template path
+    template: base.ini
 
   packages:
     - build-essential
@@ -93,10 +97,8 @@ interpreters:
       env:
         RAILS_ENV: production
       uwsgi:
-        options:
-          rack: config.ru
-          remap-modifier: 7:0
-          check-static: public
+        template: interpreters/rack.ini
+
       actions:
         setup:
           main:
@@ -104,7 +106,7 @@ interpreters:
             - bundle install --deployment --without test development
     1.8.7:
       uwsgi:
-        options:
+        vars:
           plugin: rack187
       packages:
         - ruby1.8
@@ -112,7 +114,7 @@ interpreters:
         - rubygems
     1.9.3:
       uwsgi:
-        options:
+        vars:
           plugin: rack193
       packages:
         - ruby1.9.1
@@ -127,9 +129,13 @@ interpreters:
 
   python:
 
+    any:
+      uwsgi:
+        template: interpreters/python.ini
+
     2.7:
       uwsgi:
-        options:
+        vars:
           plugin: python27
       packages:
         - python2.7
@@ -141,7 +147,7 @@ interpreters:
             - pip install -qMU -r requirements.txt
     3.2:
       uwsgi:
-        options:
+        vars:
           plugin: python32
       packages:
         - python3.2
@@ -155,21 +161,9 @@ interpreters:
   php:
     5.3:
       uwsgi:
-        options:
+        template: interpreters/php.ini
+        vars:
           plugin: php53
       packages:
         - php5-dev
         - php-pear
-
-
-uwsgi:
-  options:
-    autoload: true
-    plugins-dir: /usr/local/lib/uwsgi
-    master: true
-    vacuum: true
-    no-orphans: true
-    post-buffering: 4096
-    buffer-size: 8192
-    memory-report: true
-    auto-procname: true

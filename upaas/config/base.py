@@ -16,6 +16,10 @@ from yaml import Loader, SafeLoader, YAMLError
 log = logging.getLogger(__name__)
 
 
+# paths for searching config files
+UPAAS_CONFIG_DIRS = ['.', '/etc/upaas']
+
+
 def construct_yaml_str(self, node):
     """
     Override the default string handling function to always return unicode
@@ -272,7 +276,7 @@ class Config(object):
                 self.entries[name] = entry_schema.default
 
 
-def load_config(cls, filename, directories=['.', '/etc/upaas']):
+def load_config(cls, filename, directories=UPAAS_CONFIG_DIRS):
     """
     Try to load config, return None in case of errors.
 
@@ -293,6 +297,8 @@ def load_config(cls, filename, directories=['.', '/etc/upaas']):
         log.debug(u"Trying to load %s config file from %s" % (cls.__name__,
                                                               path))
         if os.path.isfile(path):
+            log.info(u"Loading %s config file from %s" % (cls.__name__,
+                                                          path))
             try:
                 upaas_config = cls.from_file(path)
             except ConfigurationError:
@@ -300,8 +306,6 @@ def load_config(cls, filename, directories=['.', '/etc/upaas']):
                                                              path))
                 return None
             else:
-                log.info(u"Loaded %s config file from %s" % (cls.__name__,
-                                                             path))
                 break
 
     if not upaas_config:
