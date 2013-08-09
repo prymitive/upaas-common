@@ -173,10 +173,11 @@ class Builder(object):
                 log.debug(u"Got env variables from %s/%s: %s" % (
                     meta.interpreter.type, version,
                     u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
-            if meta.get(u"env"):
-                ret.update(meta.env)
-                log.debug(u"Got env variables from app meta: %s" % u", ".join(
-                    [u"%s=%s" % (k, v) for k, v in value.items()]))
+                if meta.get(u"env"):
+                    ret.update(meta.env)
+                    log.debug(u"Got env variables from app meta: " +
+                              u", ".join([u"%s=%s" % (k, v)
+                                          for k, v in value.items()]))
         return ret
 
     def parse_packages(self, meta):
