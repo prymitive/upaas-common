@@ -142,7 +142,8 @@ class Builder(object):
             actions = ret.get(name, [])
             log.info(u"Commands for '%s' action:" % name)
             for action in actions:
-                log.info(u"- %s" % action)
+                for line in action.splitlines():
+                    log.info(u"- %s" % line)
             log.info(u"- ")
 
         return ret
