@@ -270,7 +270,7 @@ class Builder(object):
         result.progress = 20
         yield result
 
-        if not self.install_packages(workdir):
+        if not self.install_packages(workdir, self.os_packages):
             _cleanup(directory)
             raise exceptions.PackageUserError
         log.info(u"All packages installed")
@@ -366,9 +366,9 @@ class Builder(object):
                 return False
         return True
 
-    def install_packages(self, workdir):
+    def install_packages(self, workdir, packages):
         with Chroot(workdir):
-            for name in self.os_packages:
+            for name in packages:
                 cmd = self.config.commands.install.cmd.replace("%package%",
                                                                name)
                 try:
@@ -474,14 +474,16 @@ class Builder(object):
         """
         Bootstrap base os image.
         """
+        #TODO rebootstrap if settings changed
         def _cleanup(directory):
             log.info(u"Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
         log.info(u"Bootstrapping new os image")
 
+        # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
-                                     prefix="upaas_bootstrap_")
+                                     prefix="upaas_bootstrap_").encode("utf-8")
         log.debug(u"Created temporary directory for bootstrap at "
                   u"'%s'" % directory)
 
@@ -498,6 +500,9 @@ class Builder(object):
                 log.error(u"Bootstrap command failed")
                 _cleanup(directory)
                 raise exceptions.OSBootstrapError
+        log.info(u"All commands completed, installing packages")
+
+        self.install_packages(directory, self.config.bootstrap.packages)
         log.info(u"Bootstrap done, packing image")
 
         archive_path = os.path.join(directory, "image.tar.gz")

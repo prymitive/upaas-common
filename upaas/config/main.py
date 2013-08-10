@@ -32,6 +32,7 @@ class UPaaSConfig(base.Config):
             "env": base.DictEntry(value_type=unicode),
             "commands": base.ScriptEntry(required=True),
             "maxage": base.IntegerEntry(default=7),
+            "packages": base.ListEntry(value_type=basestring),
         },
         "commands": {
             "timelimit": base.IntegerEntry(required=True),
