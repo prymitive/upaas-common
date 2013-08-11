@@ -118,7 +118,7 @@ interpreters:
       actions:
         setup:
           interpreter:
-            - ruby-switch --set ruby1.8.7
+            - ruby-switch --set ruby1.8
             - ruby -v
     1.9.3:
       uwsgi:
