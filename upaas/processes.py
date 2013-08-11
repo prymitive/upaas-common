@@ -62,8 +62,8 @@ def is_pid_running(pid):
 
 def get_pid_command(pid):
     """
-    Get command line of process with given PID. If command line cannot be found,
-    then None is returned.
+    Get command line of process with given PID. If command line cannot be
+    found, then None is returned.
 
     :param pid: PID of process to lookup.
     :type pid: int
