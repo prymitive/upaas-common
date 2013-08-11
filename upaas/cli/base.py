@@ -21,7 +21,7 @@ class UPaaSApplication(cli.Application):
 
     api = None
     log = None
-    log_level = "info"
+    log_level = "warning"
     log_output = "-"
 
     @cli.switch(["l", "log-level"], str, help="Logging level")
@@ -47,7 +47,7 @@ class UPaaSApplication(cli.Application):
             self.log.addHandler(handler)
 
             self.log.setLevel(getattr(logging, self.log_level.upper(),
-                                      logging.INFO))
+                                      logging.WARNING))
 
     def api_connect(self, login, apikey, url):
         if not self.api:
@@ -55,9 +55,11 @@ class UPaaSApplication(cli.Application):
             self.log.info("Connecting to API at '%s' as '%s'" % (url, login))
             self.api = UpaasAPI(login, apikey, url)
 
-    def print_msg(self, msg):
+    def print_msg(self, msg, prefix=">>"):
+        if prefix:
+            prefix += " "
         for line in msg.splitlines():
-            print(">> %s" % line)
+            print("%s%s" % (prefix or '', line))
 
     def handle_error(self, err):
         if isinstance(err, SlumberHttpBaseException):
