@@ -210,6 +210,16 @@ class Builder(object):
                               u"distribution %s" % (pkg, distro.distro_name()))
             except KeyError:
                 pass
+            try:
+                for pkg in meta.os[distro.distro_name()][
+                        distro.distro_version()]["packages"]:
+                    ret.add(pkg)
+                    log.debug(u"Will install package '%s' from metadata for "
+                              u"distribution %s, version "
+                              u"%s" % (pkg, distro.distro_name(),
+                                       distro.distro_version()))
+            except KeyError:
+                pass
         return ret
 
     def build_package(self, system_filename=None):
