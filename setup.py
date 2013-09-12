@@ -7,6 +7,10 @@
 
 
 from setuptools import setup, find_packages
+from pip.req import parse_requirements
+
+
+required = parse_requirements('requirements.txt')
 
 
 setup(
@@ -26,4 +30,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     platforms=['Linux'],
+    install_requires=[str(r.req) for r in required],
 )
