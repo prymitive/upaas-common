@@ -51,6 +51,12 @@ class UPaaSConfig(base.Config):
             "home": base.StringEntry(required=True),
             "domain": base.StringEntry(default="upaas.local"),
         },
+        "defaults": {
+            "budget": {
+                "apps_count": base.IntegerEntry(required=True),
+                "memory_limit": base.IntegerEntry(required=True),
+            }
+        },
         "interpreters": base.WildcardEntry(),
     }
 

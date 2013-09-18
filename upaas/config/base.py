@@ -254,7 +254,7 @@ class Config(object):
         Parse and validate single configuration entry using schema.
         """
         log.debug(u"Parsing configuration entry '%s'" % name)
-        if entry_schema.required and not value:
+        if entry_schema.required and value is None:
             log.error(u"Missing required configuration entry '%s'" % name)
             raise ConfigurationError
         log.debug(u"Cleaning configuration entry '%s'" % name)
