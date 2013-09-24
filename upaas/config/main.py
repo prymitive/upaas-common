@@ -50,6 +50,10 @@ class UPaaSConfig(base.Config):
             "gid": base.StringEntry(required=True),
             "home": base.StringEntry(required=True),
             "domain": base.StringEntry(default="upaas.local"),
+            "tcp": {
+                "port_min": base.IntegerEntry(required=True),
+                "port_max": base.IntegerEntry(required=True),
+            }
         },
         "defaults": {
             "budget": {
