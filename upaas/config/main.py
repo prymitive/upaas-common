@@ -58,6 +58,7 @@ class UPaaSConfig(base.Config):
         "defaults": {
             "budget": {
                 "apps_count": base.IntegerEntry(required=True),
+                "worker_limit": base.IntegerEntry(required=True),
                 "memory_limit": base.IntegerEntry(required=True),
             }
         },
