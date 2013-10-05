@@ -3,4 +3,4 @@ plumbum>=1.1.0
 tastypie-queryset-client
 requests
 pymongo
-netifaces>=0.8
+netifaces
