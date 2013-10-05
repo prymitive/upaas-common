@@ -1,8 +1,4 @@
 pyyaml
-pytest>=2.3
-pytest-cov
-pytest-pep8
-pytest-capturelog
 plumbum>=1.1.0
 tastypie-queryset-client
 requests
