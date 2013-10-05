@@ -15,7 +15,7 @@ required = parse_requirements('requirements.txt')
 
 setup(
     name='upaas-common',
-    version='0.1-dev',
+    version='0.1-dev1',
     license='GPLv3',
     description='uPaaS common classes',
     author='Łukasz Mierzwa',
