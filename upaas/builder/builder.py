@@ -271,9 +271,6 @@ class Builder(object):
         result.progress = 10
         yield result
 
-        #TODO if building fails up to this point, then we can try retry it
-        # on another builder (for a limited number of times)
-
         log.info(u"Using interpreter %s, version %s" % (
             self.metadata.interpreter.type, self.interpreter_version))
 
@@ -297,6 +294,9 @@ class Builder(object):
         log.info(u"All interpreter actions executed")
         result.progress = 40
         yield result
+
+        #TODO if building fails up to this point, then we can try retry it
+        # on another builder (for a limited number of times)
 
         if system_filename:
             if not self.update(workdir, chroot_homedir):
