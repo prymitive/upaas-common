@@ -48,6 +48,14 @@ class DictConfigNoType(base.Config):
     }
 
 
+class BoolConfig(base.Config):
+    schema = {
+        u"mybool_false": base.BooleanEntry(),
+        u"mybool_true": base.BooleanEntry(),
+        u"mybool_missing": base.BooleanEntry(),
+    }
+
+
 def test_empty():
     with pytest.raises(base.ConfigurationError):
         BasicConfig({})
@@ -192,3 +200,12 @@ def test_load_config_invalid():
     cfg = base.load_config(BasicConfig, os.path.basename(__file__),
                            directories=[os.path.dirname(__file__)])
     assert cfg is None
+
+
+def test_bool_entry():
+    cfg = BoolConfig({u"mybool_false": False, u"mybool_true": True})
+    assert cfg.mybool_false is False
+    assert cfg.mybool_true is True
+
+    with pytest.raises(AttributeError):
+        _ = cfg.mybool_missing
