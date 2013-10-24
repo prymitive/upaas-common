@@ -56,6 +56,15 @@ class BoolConfig(base.Config):
     }
 
 
+class IntConfig(base.Config):
+    schema = {
+        u"int_with_min": base.IntegerEntry(min_value=10),
+        u"int_with_max": base.IntegerEntry(max_value=10),
+        u"int_with_min_max": base.IntegerEntry(min_value=10, max_value=20),
+        u"int_with_single_value": base.IntegerEntry(min_value=5, max_value=5),
+    }
+
+
 def test_empty():
     with pytest.raises(base.ConfigurationError):
         BasicConfig({})
@@ -209,3 +218,64 @@ def test_bool_entry():
 
     with pytest.raises(AttributeError):
         _ = cfg.mybool_missing
+
+
+def test_integer_invalid_schema():
+    with pytest.raises(ValueError):
+        class InvalidIntConfig(base.Config):
+            schema = {
+                u"int": base.IntegerEntry(min_value=2, max_value=1),
+            }
+
+
+def test_integer_min_value_valid():
+    cfg = IntConfig({u"int_with_min": 10})
+    assert cfg.int_with_min == 10
+
+    cfg = IntConfig({u"int_with_min": 20})
+    assert cfg.int_with_min == 20
+
+
+def test_integer_min_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_min": 5})
+
+
+def test_integer_max_value_valid():
+    cfg = IntConfig({u"int_with_max": 1})
+    assert cfg.int_with_max == 1
+
+    cfg = IntConfig({u"int_with_max": 10})
+    assert cfg.int_with_max == 10
+
+
+def test_integer_max_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_max": 15})
+
+
+def test_integer_min_max_value_valid():
+    cfg = IntConfig({u"int_with_min_max": 10})
+    assert cfg.int_with_min_max == 10
+
+    cfg = IntConfig({u"int_with_min_max": 20})
+    assert cfg.int_with_min_max == 20
+
+
+def test_integer_min_max_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_min_max": 9})
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_min_max": 21})
+
+
+def test_integer_single_value_valid():
+    cfg = IntConfig({u"int_with_single_value": 5})
+    assert cfg.int_with_single_value == 5
+
+
+def test_integer_single_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_single_value": 4})
+    with pytest.raises(base.ConfigurationError):
+        _ = IntConfig({u"int_with_single_value": 6})

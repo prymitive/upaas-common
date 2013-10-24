@@ -73,10 +73,27 @@ class StringEntry(ConfigEntry):
 
 class IntegerEntry(ConfigEntry):
 
+    def __init__(self, min_value=None, max_value=None, *args, **kwargs):
+        if min_value and max_value and min_value > max_value:
+            log.error(u"Minimal value (%d) must be lower then maximum value "
+                      u"(%d)!" % (min_value, max_value))
+            raise ValueError
+        self.min_value = min_value
+        self.max_value = max_value
+        super(IntegerEntry, self).__init__(*args, **kwargs)
+
     def validate(self, value):
         if value is not None and not isinstance(value, int):
             log.error(u"Value must be integer, %s "
                       u"given" % value.__class__.__name__)
+            raise ConfigurationError
+        if value is not None and self.min_value and value < self.min_value:
+            log.error(u"Value %d is too low, minimal value is '%d'" % (
+                value, self.min_value))
+            raise ConfigurationError
+        if value is not None and self.max_value and value > self.max_value:
+            log.error(u"Value %d is too high, maximal value is '%d'" % (
+                value, self.max_value))
             raise ConfigurationError
 
 
