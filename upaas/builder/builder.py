@@ -310,6 +310,13 @@ class Builder(object):
         result.progress = 45
         yield result
 
+        if not self.write_files(workdir, chroot_homedir):
+            _cleanup(directory)
+            raise exceptions.PackageUserError
+        log.info(u"Created all files from metadata")
+        result.progress = 48
+        yield result
+
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
             _cleanup(directory)
@@ -531,3 +538,26 @@ class Builder(object):
         log.info(u"Image uploaded")
         _cleanup(directory)
         log.info(u"All done")
+
+    def write_files(self, workdir, chroot_homedir):
+        """
+        Create all files specified in metadata 'files' section.
+        """
+        with Chroot(workdir, workdir=chroot_homedir):
+            for path, content in self.metadata.files.items():
+                basedir = os.path.dirname(path)
+                if basedir and not os.path.exists(basedir):
+                    try:
+                        os.makedirs(basedir)
+                    except Exception, e:
+                        log.error(u"Can't create base directory (%s): %s" % (
+                            basedir, e))
+                        return False
+                log.info(u"Creating metadata file: %s" % path)
+                try:
+                    with open(path, 'w') as out:
+                        out.write(content)
+                except Exception, e:
+                    log.error(u"Can't write to '%s': %s" % (path, e))
+                    return False
+        return True

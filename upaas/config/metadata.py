@@ -30,5 +30,6 @@ class MetadataConfig(base.Config):
                 "main": base.ScriptEntry(),
                 "after": base.ScriptEntry(),
             }
-        }
+        },
+        "files": base.DictEntry(value_type=unicode),
     }
