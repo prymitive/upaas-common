@@ -24,8 +24,8 @@ class Chroot(object):
         self.dir = '/' if workdir is None else workdir
 
     def __enter__(self):
-        log.info(u"Entering chroot at '%s', workdir is '%s'" % (self.root,
-                                                                self.dir))
+        log.debug(u"Entering chroot at '%s', workdir is '%s'" % (self.root,
+                                                                 self.dir))
         self.realdir = os.getcwd()
         self.realroot = os.open('/', os.O_RDONLY)
         os.chroot(self.root)
@@ -40,7 +40,7 @@ class Chroot(object):
         os.chroot('.')
         os.close(self.realroot)
         os.chdir(self.realdir)
-        log.info("Exited from chroot at '%s'" % self.root)
+        log.debug("Exited from chroot at '%s'" % self.root)
 
     def escape(self):
         try:

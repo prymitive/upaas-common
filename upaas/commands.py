@@ -89,10 +89,10 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     if timeout:
         signal.signal(signal.SIGALRM, _alarm_handler)
         signal.alarm(timeout)
-        log.info(u"Timeout for command is %d seconds" % timeout)
+        log.debug(u"Timeout for command is %d seconds" % timeout)
 
     output = []
-    log.info(u"Running ...")
+    log.debug(u"Running ...")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True)
     try:

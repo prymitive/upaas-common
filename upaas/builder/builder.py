@@ -267,7 +267,7 @@ class Builder(object):
                               system_filename=system_filename):
             _cleanup(directory)
             raise exceptions.PackageSystemError
-        log.info(u"Os image unpacked")
+        log.info(u"OS image unpacked")
         result.progress = 10
         yield result
 
@@ -374,16 +374,16 @@ class Builder(object):
             system_filename = distro.distro_image_filename()
 
         os_image_path = os.path.join(directory, "os.image")
-        log.info(u"Fetching os image '%s'" % system_filename)
+        log.info(u"Fetching OS image '%s'" % system_filename)
         try:
             self.storage.get(system_filename, os_image_path)
         except StorageError:
-            log.error(u"Storage error while fetching os image")
+            log.error(u"Storage error while fetching OS image")
             return False
         else:
-            log.info(u"Unpacking os image")
+            log.info(u"Unpacking OS image")
             if not tar.unpack_tar(os_image_path, workdir):
-                log.error(u"Error while unpacking os image to '%s'" % workdir)
+                log.error(u"Error while unpacking OS image to '%s'" % workdir)
                 return False
         return True
 
