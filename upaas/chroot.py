@@ -19,9 +19,10 @@ log = logging.getLogger(__name__)
 
 class Chroot(object):
 
-    def __init__(self, root, workdir=None):
+    def __init__(self, root, workdir=None, umask=022):
         self.root = root
         self.dir = '/' if workdir is None else workdir
+        self.umask = umask
 
     def __enter__(self):
         log.debug(u"Entering chroot at '%s', workdir is '%s'" % (self.root,
@@ -30,6 +31,7 @@ class Chroot(object):
         self.realroot = os.open('/', os.O_RDONLY)
         os.chroot(self.root)
         os.chdir(self.dir)
+        self.old_umask = os.umask(self.umask)
         return self
 
     def __exit__(self, type, value, traceback):
@@ -40,6 +42,7 @@ class Chroot(object):
         os.chroot('.')
         os.close(self.realroot)
         os.chdir(self.realdir)
+        os.umask(self.old_umask)
         log.debug("Exited from chroot at '%s'" % self.root)
 
     def escape(self):
@@ -52,3 +55,4 @@ class Chroot(object):
         os.chroot('.')
         os.close(self.realroot)
         os.chdir(self.realdir)
+        os.umask(self.old_umask)
