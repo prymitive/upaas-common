@@ -144,7 +144,6 @@ class Builder(object):
             for action in actions:
                 for line in action.splitlines():
                     log.info(u"- %s" % line)
-            log.info(u"- ")
 
         return ret
 
