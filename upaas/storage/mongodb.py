@@ -61,7 +61,7 @@ class MongoDBStorage(BaseStorage):
         except Exception, e:
             log.error(u"[GET] Unhandled error: %s" % e)
             client.disconnect()
-            raise StorageError
+            raise StorageError(e)
 
     def put(self, local_path, remote_path):
         client = self.connect()
@@ -85,7 +85,7 @@ class MongoDBStorage(BaseStorage):
         except Exception, e:
             log.error(u"[PUT] Unhandled error: %s" % e)
             client.disconnect()
-            raise StorageError
+            raise StorageError(e)
 
     def delete(self, remote_path):
         client = self.connect()
@@ -101,7 +101,7 @@ class MongoDBStorage(BaseStorage):
         except Exception, e:
             log.error(u"[DELETE] Unhandled error: %s" % e)
             client.disconnect()
-            raise StorageError
+            raise StorageError(e)
 
     def exists(self, remote_path):
         client = self.connect()
@@ -118,11 +118,11 @@ class MongoDBStorage(BaseStorage):
         except NoFile:
             client.disconnect()
             log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(e)
         except Exception, e:
             log.error(u"[DELETE] Unhandled error: %s" % e)
             client.disconnect()
-            raise StorageError
+            raise StorageError(e)
         else:
             size = fsfile.length
             client.disconnect()
@@ -133,14 +133,14 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
         try:
             fsfile = fs.get_last_version(filename=remote_path)
-        except NoFile:
+        except NoFile, e:
             client.disconnect()
             log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(e)
         except Exception, e:
             log.error(u"[DELETE] Unhandled error: %s" % e)
             client.disconnect()
-            raise StorageError
+            raise StorageError(e)
         else:
             timestamp = fsfile.upload_date
             client.disconnect()

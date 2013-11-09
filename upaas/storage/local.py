@@ -36,16 +36,16 @@ class LocalStorage(BaseStorage):
                                               local_path))
         try:
             shutil.copy(self._join_paths(remote_path), local_path)
-        except:
-            raise StorageError
+        except Exception, e:
+            raise StorageError(e)
 
     def put(self, local_path, remote_path):
         log.info(u"[PUT] Copying %s to %s" % (local_path,
                                               self._join_paths(remote_path)))
         try:
             shutil.copy(local_path, self._join_paths(remote_path))
-        except:
-            raise StorageError
+        except Exception, e:
+            raise StorageError(e)
 
     def delete(self, remote_path):
         if not self.exists(remote_path):
@@ -55,8 +55,8 @@ class LocalStorage(BaseStorage):
             os.remove(self._join_paths(remote_path))
             log.info(u"[DELETE] File deleted: "
                      u"%s" % self._join_paths(remote_path))
-        except:
-            raise StorageError
+        except Exception, e:
+            raise StorageError(e)
 
     def exists(self, remote_path):
         return os.path.exists(self._join_paths(remote_path))
