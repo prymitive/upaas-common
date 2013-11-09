@@ -52,7 +52,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     :returns: tuple -- (return code, output as list of strings)
     """
     def _alarm_handler(signum, frame):
-        raise CommandTimeout
+        raise CommandTimeout(u"Command timeout reached")
 
     def _cleanup(workdir, original_env):
         if workdir:
@@ -107,13 +107,13 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     except CommandTimeout:
         os.kill(p.pid, signal.SIGKILL)
         _cleanup(wd, original_env)
-        raise CommandTimeout
-    except KeyboardInterrupt:
+        raise CommandTimeout(u"Command timeout reached")
+    except KeyboardInterrupt, e:
         if timeout:
             signal.alarm(0)
         os.kill(p.pid, signal.SIGKILL)
         _cleanup(wd, original_env)
-        raise CommandFailed
+        raise CommandFailed(e)
 
     if timeout:
         signal.alarm(0)
@@ -121,7 +121,8 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     _cleanup(wd, original_env)
 
     if retcode not in valid_retcodes:
-        log.error(u"Command failed with status %d" % retcode)
-        raise CommandFailed
+        msg = u"Command failed with status %d" % retcode
+        log.error(msg)
+        raise CommandFailed(msg)
 
     return retcode, output

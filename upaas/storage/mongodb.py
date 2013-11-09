@@ -57,7 +57,7 @@ class MongoDBStorage(BaseStorage):
         except NoFile:
             client.disconnect()
             log.error(u"[GET] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(u"%s not found" % remote_path)
         except Exception, e:
             log.error(u"[GET] Unhandled error: %s" % e)
             client.disconnect()
@@ -68,7 +68,7 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
 
         if self.exists(remote_path):
-            raise FileAlreadyExists
+            raise FileAlreadyExists(u"%s already exists" % remote_path)
 
         gridin = fs.new_file(filename=remote_path)
         try:
@@ -97,7 +97,7 @@ class MongoDBStorage(BaseStorage):
         except NoFile:
             client.disconnect()
             log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(u"%s not found" % remote_path)
         except Exception, e:
             log.error(u"[DELETE] Unhandled error: %s" % e)
             client.disconnect()

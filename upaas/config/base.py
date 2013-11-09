@@ -50,6 +50,11 @@ class ConfigEntry(object):
         if not default is None:
             self.default = default
 
+    @staticmethod
+    def fail(msg):
+        log.error(msg)
+        raise ConfigurationError(msg)
+
     def validate(self, value):
         """
         Validate entry value, raise exception if invalid.
@@ -75,35 +80,32 @@ class IntegerEntry(ConfigEntry):
 
     def __init__(self, min_value=None, max_value=None, *args, **kwargs):
         if min_value and max_value and min_value > max_value:
-            log.error(u"Minimal value (%d) must be lower then maximum value "
-                      u"(%d)!" % (min_value, max_value))
-            raise ValueError
+            msg = u"Minimal value (%d) must be lower then maximum value " \
+                  u"(%d)!" % (min_value, max_value)
+            log.error(msg)
+            raise ValueError(msg)
         self.min_value = min_value
         self.max_value = max_value
         super(IntegerEntry, self).__init__(*args, **kwargs)
 
     def validate(self, value):
         if value is not None and not isinstance(value, int):
-            log.error(u"Value must be integer, %s "
+            self.fail(u"Value must be integer, %s "
                       u"given" % value.__class__.__name__)
-            raise ConfigurationError
         if value is not None and self.min_value and value < self.min_value:
-            log.error(u"Value %d is too low, minimal value is '%d'" % (
-                value, self.min_value))
-            raise ConfigurationError
+            self.fail(u"Value %d is too low, minimal value is '%d'" % (
+                      value, self.min_value))
         if value is not None and self.max_value and value > self.max_value:
-            log.error(u"Value %d is too high, maximal value is '%d'" % (
-                value, self.max_value))
-            raise ConfigurationError
+            self.fail(u"Value %d is too high, maximal value is '%d'" % (
+                      value, self.max_value))
 
 
 class BooleanEntry(ConfigEntry):
 
     def validate(self, value):
         if value is not None and not isinstance(value, bool):
-            log.error(u"Value must be a bool, %s "
+            self.fail(u"Value must be a bool, %s "
                       u"given" % value.__class__.__name__)
-            raise ConfigurationError
 
 
 class ListEntry(ConfigEntry):
@@ -118,17 +120,15 @@ class ListEntry(ConfigEntry):
         if value is None:
             return
         if not isinstance(value, list):
-            log.error(u"Value must be list, %s "
+            self.fail(u"Value must be list, %s "
                       u"given" % value.__class__.__name__)
-            raise ConfigurationError
         if not self.value_type:
             return
         for elem in value:
             if not isinstance(elem, self.value_type):
-                log.error(u"List element '%r' must be instance of '%s', '%s' "
+                self.fail(u"List element '%r' must be instance of '%s', '%s' "
                           u"given" % (elem, self.value_type.__name__,
                                       elem.__class__.__name__))
-                raise ConfigurationError
 
 
 class DictEntry(ConfigEntry):
@@ -143,17 +143,15 @@ class DictEntry(ConfigEntry):
         if value is None:
             return
         if not isinstance(value, dict):
-            log.error(u"Value must be dict, %s "
+            self.fail(u"Value must be dict, %s "
                       u"given" % value.__class__.__name__)
-            raise ConfigurationError
         if not self.value_type:
             return
         for name, elem in value.items():
             if not isinstance(elem, self.value_type):
-                log.error(u"Dict key '%r' value must be instance of '%s', '%s'"
+                self.fail(u"Dict key '%r' value must be instance of '%s', '%s'"
                           u" given" % (name, self.value_type.__name__,
                                        elem.__class__.__name__))
-                raise ConfigurationError
 
 
 class FSPathEntry(ConfigEntry):
@@ -163,8 +161,7 @@ class FSPathEntry(ConfigEntry):
 
     def validate(self, value):
         if self.must_exist and not os.path.exists(value):
-            log.error(u"Required path '%s' does not exits" % value)
-            raise ConfigurationError
+            self.fail(u"Required path '%s' does not exits" % value)
 
 
 class ScriptEntry(ConfigEntry):
@@ -205,11 +202,13 @@ class Config(object):
             with open(path) as config_file:
                 content = yaml.safe_load(config_file)
         except IOError:
-            log.error(u"Can't open configuration file '%s'" % path)
-            raise ConfigurationError
+            msg = u"Can't open configuration file '%s'" % path
+            log.error(msg)
+            raise ConfigurationError(msg)
         except YAMLError:
-            log.error(u"Can't parse yaml file '%s'" % path)
-            raise ConfigurationError
+            msg = u"Can't parse yaml file '%s'" % path
+            log.error(msg)
+            raise ConfigurationError(msg)
 
         return cls(content)
 
@@ -225,9 +224,8 @@ class Config(object):
                                                            self.schema))
 
         if not isinstance(content, (types.DictionaryType, types.NoneType)):
-            log.error(u"Invalid configuration, expected dict but got "
+            self.fail(u"Invalid configuration, expected dict but got "
                       u"%s" % content.__class__.__name__)
-            raise ConfigurationError
 
         self.content = content
         self.entries = {}
@@ -236,8 +234,7 @@ class Config(object):
         for key, value in self.schema.items():
             if content is None and isinstance(value, ConfigEntry) \
                     and value.required:
-                log.error(u"Empty configuration")
-                raise ConfigurationError
+                self.fail(u"Empty configuration")
             if isinstance(value, dict):
                 setattr(self, key, Config(content.get(key, {}), _schema=value))
                 self.children.add(key)
@@ -251,7 +248,12 @@ class Config(object):
     def __getattr__(self, item):
         if item in self.entries:
             return self.entries[item]
-        raise AttributeError
+        raise AttributeError(u"%s not found" % item)
+
+    @staticmethod
+    def fail(msg):
+        log.error(msg)
+        raise ConfigurationError(msg)
 
     def get(self, item, default=None):
         try:
@@ -281,16 +283,14 @@ class Config(object):
         """
         log.debug(u"Parsing configuration entry '%s'" % name)
         if entry_schema.required and value is None:
-            log.error(u"Missing required configuration entry '%s'" % name)
-            raise ConfigurationError
+            self.fail(u"Missing required configuration entry '%s'" % name)
         log.debug(u"Cleaning configuration entry '%s'" % name)
         value = entry_schema.clean(value)
         log.debug(u"Validating configuration entry '%s'" % name)
         try:
             entry_schema.validate(value)
         except ConfigurationError:
-            log.error(u"Configuration entry '%s' is invalid" % name)
-            raise ConfigurationError
+            self.fail(u"Configuration entry '%s' is invalid" % name)
         else:
             if value is not None:
                 self.entries[name] = value

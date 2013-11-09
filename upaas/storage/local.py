@@ -30,7 +30,7 @@ class LocalStorage(BaseStorage):
     def get(self, remote_path, local_path):
         if not self.exists(remote_path):
             log.error(u"[GET] File not found: %s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(u"%s not found" % remote_path)
 
         log.info(u"[GET] Copying %s to %s" % (self._join_paths(remote_path),
                                               local_path))
@@ -50,7 +50,7 @@ class LocalStorage(BaseStorage):
     def delete(self, remote_path):
         if not self.exists(remote_path):
             log.error(u"[DELETE] File not found: %s" % remote_path)
-            raise FileNotFound
+            raise FileNotFound(u"%s not found" % remote_path)
         try:
             os.remove(self._join_paths(remote_path))
             log.info(u"[DELETE] File deleted: "

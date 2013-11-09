@@ -74,13 +74,22 @@ class Builder(object):
         self.interpreter_version = utils.select_best_version(self.config,
                                                              metadata)
         if not self.interpreter_version:
-            log.error(u"Unsupported interpreter version")
-            raise exceptions.PackageUserError
+            self.user_error(u"Unsupported interpreter version")
 
         self.actions = self.parse_actions(metadata)
         self.envs = self.parse_envs(metadata)
         self.os_packages = self.parse_packages(metadata)
         self.storage = find_storage_handler(self.config)
+
+    @staticmethod
+    def user_error(self, msg):
+        log.error(msg)
+        raise exceptions.PackageUserError(msg)
+
+    @staticmethod
+    def system_error(self, msg):
+        log.error(msg)
+        raise exceptions.PackageSystemError(msg)
 
     def parse_actions(self, meta):
         """
@@ -242,12 +251,11 @@ class Builder(object):
             if not self.has_valid_os_image():
                 try:
                     self.bootstrap_os()
-                except exceptions.OSBootstrapError:
-                    log.error(u"Error during os bootstrap, aborting")
-                    raise exceptions.PackageSystemError
-                except StorageError:
-                    log.error(u"Error during uploading os image, aborting")
-                    raise exceptions.PackageSystemError
+                except exceptions.OSBootstrapError, e:
+                    self.system_error(u"Error during os bootstrap: %s" % e)
+                except StorageError, e:
+                    self.system_error(u"Error during uploading OS image: "
+                                      u"%s" % e)
 
         result = BuildResult()
         result.parent = system_filename
@@ -265,7 +273,7 @@ class Builder(object):
         if not self.unpack_os(directory, workdir,
                               system_filename=system_filename):
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Unpacking OS image failed")
         log.info(u"OS image unpacked")
         result.progress = 10
         yield result
@@ -275,21 +283,21 @@ class Builder(object):
 
         if not self.run_actions(self.builder_action_names, workdir):
             _cleanup(directory)
-            raise exceptions.PackageUserError
+            self.system_error(u"System actions failed")
         log.info(u"All builder actions executed")
         result.progress = 20
         yield result
 
         if not self.install_packages(workdir, self.os_packages):
             _cleanup(directory)
-            raise exceptions.PackageUserError
+            self.user_error(u"Failed to install OS packages")
         log.info(u"All packages installed")
         result.progress = 35
         yield result
 
         if not self.run_actions(self.interpreter_action_names, workdir, '/'):
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Interpreter actions failed")
         log.info(u"All interpreter actions executed")
         result.progress = 40
         yield result
@@ -300,18 +308,18 @@ class Builder(object):
         if system_filename:
             if not self.update(workdir, chroot_homedir):
                 _cleanup(directory)
-                raise exceptions.PackageUserError
+                self.user_error(u"Updating repository failed")
         else:
             if not self.clone(workdir, chroot_homedir):
                 _cleanup(directory)
-                raise exceptions.PackageUserError
+                self.user_error(u"Cloning repository failed")
         log.info(u"Application repository ready")
         result.progress = 45
         yield result
 
         if not self.write_files(workdir, chroot_homedir):
             _cleanup(directory)
-            raise exceptions.PackageUserError
+            self.user_error(u"Creating files from metadata failed")
         log.info(u"Created all files from metadata")
         result.progress = 48
         yield result
@@ -319,21 +327,21 @@ class Builder(object):
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
             _cleanup(directory)
-            raise exceptions.PackageUserError
+            self.user_error(u"Application actions failed")
         log.info(u"All application actions executed")
         result.progress = 85
         yield result
 
         if not self.run_actions(self.finalize_action_names, workdir, '/'):
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Finalize actions failed")
         log.info(u"All final actions executed")
         result.progress = 88
         yield result
 
         if not self.chown_app_dir(workdir, chroot_homedir):
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Setting file ownership failed")
         log.info(u"Owner of application directory updated")
         result.progress = 89
         yield result
@@ -341,7 +349,7 @@ class Builder(object):
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Creating package file failed")
         result.bytes = os.path.getsize(package_path)
         log.info(u"Application package created, "
                  u"%s" % utils.bytes_to_human(result.bytes))
@@ -355,10 +363,9 @@ class Builder(object):
 
         try:
             self.storage.put(package_path, checksum)
-        except StorageError:
-            log.error(u"Error while uploading package")
+        except StorageError, e:
             _cleanup(directory)
-            raise exceptions.PackageSystemError
+            self.system_error(u"Package upload failed: %s" % e)
 
         _cleanup(directory)
 
@@ -476,7 +483,7 @@ class Builder(object):
 
     def has_valid_os_image(self):
         """
-        Check if os image exists and is fresh enough.
+        Check if OS image exists and is fresh enough.
         """
         if not self.storage.exists(distro.distro_image_filename()):
             return False
@@ -492,14 +499,13 @@ class Builder(object):
 
     def bootstrap_os(self):
         """
-        Bootstrap base os image.
+        Bootstrap base OS image.
         """
-        #TODO rebootstrap if settings changed
         def _cleanup(directory):
             log.info(u"Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
-        log.info(u"Bootstrapping new os image")
+        log.info(u"Bootstrapping new OS image")
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
@@ -512,14 +518,14 @@ class Builder(object):
             try:
                 commands.execute(cmd, timeout=self.config.bootstrap.timelimit,
                                  cwd=directory, env=self.config.bootstrap.env)
-            except commands.CommandTimeout:
+            except commands.CommandTimeout, e:
                 log.error(u"Bootstrap was taking too long and it was killed")
                 _cleanup(directory)
-                raise exceptions.OSBootstrapError
-            except commands.CommandFailed:
+                raise exceptions.OSBootstrapError(e)
+            except commands.CommandFailed, e:
                 log.error(u"Bootstrap command failed")
                 _cleanup(directory)
-                raise exceptions.OSBootstrapError
+                raise exceptions.OSBootstrapError(e)
         log.info(u"All commands completed, installing packages")
 
         self.install_packages(directory, self.config.bootstrap.packages)
@@ -529,10 +535,15 @@ class Builder(object):
         if not tar.pack_tar(directory, archive_path,
                             timeout=self.config.bootstrap.timelimit):
             _cleanup(directory)
-            raise exceptions.OSBootstrapError
+            raise exceptions.OSBootstrapError(u"Tar error")
         else:
             log.info(u"Image packed, uploading")
+
+        try:
             self.storage.put(archive_path, distro.distro_image_filename())
+        except Exception, e:
+            log.error(u"Upload failed: %s" % e)
+            raise
 
         log.info(u"Image uploaded")
         _cleanup(directory)
@@ -560,3 +571,13 @@ class Builder(object):
                     log.error(u"Can't write to '%s': %s" % (path, e))
                     return False
         return True
+
+
+class OSBuilder(Builder):
+
+    def __init__(self, builder_config):
+        """
+        :param builder_config: Builder configuration.
+        """
+        self.config = builder_config
+        self.storage = find_storage_handler(self.config)

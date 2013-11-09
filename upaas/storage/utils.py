@@ -25,15 +25,17 @@ def find_storage_handler(config):
         exec("from %s import %s as storage_handler" % (
             storage_module, storage_class))
     except ImportError:
-        log.error(u"Storage handler '%s' could not be "
-                  u"loaded" % config.storage.handler)
-        raise ConfigurationError
+        msg = u"Storage handler '%s' could not be " \
+              u"loaded" % config.storage.handler
+        log.error(msg)
+        raise ConfigurationError(msg)
     else:
         log.info(u"Loaded storage handler: "
                  u"%s" % config.storage.handler)
         try:
             return storage_handler(config.storage.settings)
         except ConfigurationError:
-            log.error(u"Storage handler failed to initialize with given "
-                      u"configuration")
-            raise ConfigurationError
+            msg = u"Storage handler failed to initialize with given " \
+                  u"configuration"
+            log.error(msg)
+            raise ConfigurationError(msg)
