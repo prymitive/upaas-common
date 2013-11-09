@@ -70,7 +70,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
                 except KeyError:
                     pass
 
-    log.info(u"About to execute command: %s" % cmd)
+    log.info(u"Executing command: %s" % cmd)
 
     wd = None
     if cwd:
