@@ -10,9 +10,10 @@ from setuptools import setup, find_packages
 
 try:
     from pip.req import parse_requirements
-    required = parse_requirements('requirements.txt')
+    required = {'install_requires': [str(r.req) for r in parse_requirements(
+        'requirements.txt')]}
 except ImportError:
-    required = []
+    required = {}
 
 
 setup(
@@ -32,5 +33,5 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
     platforms=['Linux'],
-    install_requires=[str(r.req) for r in required],
+    **required
 )
