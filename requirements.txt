@@ -1,6 +1,6 @@
-pyyaml
-plumbum>=1.1.0
-tastypie-queryset-client
-requests
-pymongo>=2.6.3
-netifaces
+pyyaml==3.10
+plumbum==1.3.0
+tastypie-queryset-client==0.7.2
+requests==0.8.2
+pymongo==2.6.3
+netifaces==0.6
