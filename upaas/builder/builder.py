@@ -461,8 +461,8 @@ class Builder(object):
                         log.error(u"Command is taking too long to execute, "
                                   u"aborting")
                         return False
-                    except commands.CommandFailed:
-                        log.error(u"Command failed")
+                    except commands.CommandFailed, e:
+                        log.error(u"Execution failed: %s" % e)
                         return False
         return True
 
