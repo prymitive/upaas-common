@@ -1,3 +1,3 @@
 include requirements*.txt
 include stdeb.cfg
-recursive-include debian
+recursive-include debian/*
