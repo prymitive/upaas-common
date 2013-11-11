@@ -18,7 +18,7 @@ except ImportError:
 
 setup(
     name='upaas-common',
-    version='0.2-dev6',
+    version='0.2-dev7',
     license='GPLv3',
     description='uPaaS common classes',
     author='Łukasz Mierzwa',
