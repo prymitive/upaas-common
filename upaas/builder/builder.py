@@ -184,9 +184,17 @@ class Builder(object):
                     u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
                 if meta.get(u"env"):
                     ret.update(meta.env)
-                    log.debug(u"Got env variables from app meta: " +
-                              u", ".join([u"%s=%s" % (k, v)
-                                          for k, v in value.items()]))
+                    log.info(u"Got env variables from app meta: " +
+                             u", ".join([u"%s=%s" % (k, v)
+                                         for k, v in value.items()]))
+
+        if ret:
+            log.info(u"Final env variables:")
+            for key, value in ret.items():
+                log.info(u"%s = %s" % (key, value))
+        else:
+            log.info(u"No env variables set")
+
         return ret
 
     def parse_packages(self, meta):
@@ -451,7 +459,6 @@ class Builder(object):
     def run_actions(self, actions, workdir, homedir='/'):
         for name in actions:
             log.info(u"Executing '%s' setup actions" % name)
-            log.info(u"ENVS: %s" % self.envs)
             for cmd in self.actions[name]:
                 with Chroot(workdir, workdir=homedir):
                     try:
