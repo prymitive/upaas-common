@@ -166,7 +166,7 @@ class Builder(object):
             value = self.config.interpreters["env"]
             if value:
                 ret.update(value)
-                log.debug(u"Got env variables for all interpreters: %s" % (
+                log.info(u"Got env variables for all interpreters: %s" % (
                     u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
         except KeyError:
             pass
@@ -179,7 +179,7 @@ class Builder(object):
             except KeyError:
                 pass
             else:
-                log.debug(u"Got env variables from %s/%s: %s" % (
+                log.info(u"Got env variables from %s/%s: %s" % (
                     meta.interpreter.type, version,
                     u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
                 if meta.get(u"env"):
@@ -326,8 +326,8 @@ class Builder(object):
 
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
-            _cleanup(directory)
             self.user_error(u"Application actions failed")
+            _cleanup(directory)
         log.info(u"All application actions executed")
         result.progress = 85
         yield result
@@ -451,6 +451,7 @@ class Builder(object):
     def run_actions(self, actions, workdir, homedir='/'):
         for name in actions:
             log.info(u"Executing '%s' setup actions" % name)
+            log.info(u"ENVS: %s" % self.envs)
             for cmd in self.actions[name]:
                 with Chroot(workdir, workdir=homedir):
                     try:
