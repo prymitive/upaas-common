@@ -81,12 +81,10 @@ class Builder(object):
         self.os_packages = self.parse_packages(metadata)
         self.storage = find_storage_handler(self.config)
 
-    @staticmethod
     def user_error(self, msg):
         log.error(msg)
         raise exceptions.PackageUserError(msg)
 
-    @staticmethod
     def system_error(self, msg):
         log.error(msg)
         raise exceptions.PackageSystemError(msg)
