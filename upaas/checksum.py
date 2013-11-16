@@ -17,3 +17,9 @@ def calculate_file_sha256(path):
                 break
             hasher.update(data)
     return hasher.hexdigest()
+
+
+def calculate_string_sha256(content):
+    hasher = sha256()
+    hasher.update(content)
+    return hasher.hexdigest()
