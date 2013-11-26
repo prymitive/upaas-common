@@ -14,6 +14,20 @@ import logging
 log = logging.getLogger(__name__)
 
 
+SAFE_ENVS = [
+    'HOME',
+    'LOGNAME',
+    'USER',
+    'TERM',
+    'PATH',
+    'LANG',
+    'LC_ALL',
+    'TZ',
+    'SHELL',
+    'PWD',
+]
+
+
 class CommandError(Exception):
     """
     Generic command execution error.
@@ -36,7 +50,7 @@ class CommandFailed(CommandError):
 
 
 def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
-            valid_retcodes=[0]):
+            valid_retcodes=[0], strip_envs=False):
     """
     Execute given command in shell.
 
@@ -49,6 +63,8 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     :param valid_retcodes: List of return codes that can be returned by this
                            command. Other return codes will be interpreted as
                            error and exception will be raised.
+    :param strip_envs: If True all unsafe env variables will be removed
+                       before executing command.
     :returns: tuple -- (return code, output as list of strings)
     """
     def _alarm_handler(signum, frame):
@@ -79,6 +95,14 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
         os.chdir(cwd)
 
     original_env = {}
+    if strip_envs:
+        for ename, evalue in os.environ.items():
+            if ename not in (env.keys() + SAFE_ENVS):
+                log.debug(u"Removing unsafe ENV variable %s=%s" % (ename,
+                                                                   evalue))
+                original_env[ename] = evalue
+                del os.environ[ename]
+
     for ename, evalue in env.items():
         log.debug(u"Setting ENV variable %s=%s" % (ename, evalue))
         orgval = os.environ.get(ename)
