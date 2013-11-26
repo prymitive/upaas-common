@@ -408,7 +408,8 @@ class Builder(object):
                     commands.execute(cmd,
                                      timeout=self.config.commands.timelimit,
                                      env=self.config.commands.install.env,
-                                     output_loglevel=logging.INFO)
+                                     output_loglevel=logging.INFO,
+                                     strip_envs=True)
                 except commands.CommandTimeout:
                     log.error(u"Installing package '%s' is taking to long, "
                               u"aborting" % name)
@@ -427,7 +428,8 @@ class Builder(object):
                     commands.execute(cmd,
                                      timeout=self.config.commands.timelimit,
                                      env=self.metadata.repository.env,
-                                     output_loglevel=logging.INFO)
+                                     output_loglevel=logging.INFO,
+                                     strip_envs=True)
                 except commands.CommandTimeout:
                     log.error(u"Command is taking too long, aborting")
                     return False
@@ -445,7 +447,8 @@ class Builder(object):
                     commands.execute(cmd,
                                      timeout=self.config.commands.timelimit,
                                      env=self.metadata.repository.env,
-                                     output_loglevel=logging.INFO)
+                                     output_loglevel=logging.INFO,
+                                     strip_envs=True)
                 except commands.CommandTimeout:
                     log.error(u"Command is taking too long, aborting")
                     return False
@@ -462,7 +465,8 @@ class Builder(object):
                     try:
                         commands.execute(
                             cmd, timeout=self.config.commands.timelimit,
-                            env=self.envs, output_loglevel=logging.INFO)
+                            env=self.envs, output_loglevel=logging.INFO,
+                            strip_envs=True)
                     except commands.CommandTimeout:
                         log.error(u"Command is taking too long to execute, "
                                   u"aborting")
@@ -478,7 +482,7 @@ class Builder(object):
         with Chroot(workdir):
             try:
                 commands.execute(cmd, timeout=self.config.commands.timelimit,
-                                 output_loglevel=logging.INFO)
+                                 output_loglevel=logging.INFO, strip_envs=True)
             except commands.CommandTimeout:
                 log.error(u"chown is taking too long to execute, aborting")
                 return False
@@ -523,7 +527,8 @@ class Builder(object):
             cmd = cmd.replace("%workdir%", directory)
             try:
                 commands.execute(cmd, timeout=self.config.bootstrap.timelimit,
-                                 cwd=directory, env=self.config.bootstrap.env)
+                                 cwd=directory, env=self.config.bootstrap.env,
+                                 strip_envs=True)
             except commands.CommandTimeout, e:
                 log.error(u"Bootstrap was taking too long and it was killed")
                 _cleanup(directory)
