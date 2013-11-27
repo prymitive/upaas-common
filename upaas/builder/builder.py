@@ -117,6 +117,11 @@ class Builder(object):
         for name in self.interpreter_action_names:
             try:
                 ret[name] = self.config.interpreters[meta.interpreter.type][
+                    "any"]["actions"]["setup"][name]
+            except KeyError:
+                ret[name] = []
+            try:
+                ret[name] = self.config.interpreters[meta.interpreter.type][
                     self.interpreter_version]["actions"]["setup"][name]
             except KeyError:
                 ret[name] = []
