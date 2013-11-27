@@ -15,6 +15,7 @@ class MetadataConfig(base.Config):
         "interpreter": {
             "type": base.StringEntry(required=True),
             "versions": base.ListEntry(unicode),
+            "settings": base.DictEntry(value_type=unicode),
         },
         "repository": {
             "env": base.DictEntry(value_type=unicode),
