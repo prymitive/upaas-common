@@ -134,9 +134,13 @@ class Builder(object):
 
             # interpreter actions
             for version in ["any"] + [self.interpreter_version]:
-                _run_action(
-                    self.config.interpreters[meta.interpreter.type][version],
-                    name, ret)
+                try:
+                    cfg = self.config.interpreters[meta.interpreter.type][
+                        version]
+                except KeyError:
+                    pass
+                else:
+                    _run_action(cfg, name, ret)
 
             # app metadata actions
             try:
