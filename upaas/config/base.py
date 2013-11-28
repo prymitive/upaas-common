@@ -39,6 +39,7 @@ class ConfigurationError(Exception):
     Raised if user provided configuration is invalid (missing or invalid
     required options).
     """
+    pass
 
 
 class ConfigEntry(object):
@@ -80,7 +81,7 @@ class IntegerEntry(ConfigEntry):
 
     def __init__(self, min_value=None, max_value=None, *args, **kwargs):
         if min_value and max_value and min_value > max_value:
-            msg = u"Minimal value (%d) must be lower then maximum value " \
+            msg = u"Minimal value (%d) must be lower than maximum value " \
                   u"(%d)!" % (min_value, max_value)
             log.error(msg)
             raise ValueError(msg)
@@ -93,10 +94,10 @@ class IntegerEntry(ConfigEntry):
             self.fail(u"Value must be integer, %s "
                       u"given" % value.__class__.__name__)
         if value is not None and self.min_value and value < self.min_value:
-            self.fail(u"Value %d is too low, minimal value is '%d'" % (
+            self.fail(u"Value %d is too low, minimal value is %d" % (
                       value, self.min_value))
         if value is not None and self.max_value and value > self.max_value:
-            self.fail(u"Value %d is too high, maximal value is '%d'" % (
+            self.fail(u"Value %d is too high, maximal value is %d" % (
                       value, self.max_value))
 
 
@@ -216,12 +217,14 @@ class Config(object):
     def from_string(cls, string):
         return cls(yaml.safe_load(string))
 
-    def __init__(self, content, _schema=None):
+    def __init__(self, content, _schema=None, name=''):
         if _schema:
             self.schema = _schema
+        self.name = name
 
-        log.debug(u"Parsing settings %s with schema %s" % (content,
-                                                           self.schema))
+        log.debug(u"Parsing key '%s', settings %s, schema %s" % (self.name,
+                                                                 content,
+                                                                 self.schema))
 
         if not isinstance(content, (types.DictionaryType, types.NoneType)):
             self.fail(u"Invalid configuration, expected dict but got "
@@ -236,19 +239,24 @@ class Config(object):
                     and value.required:
                 self.fail(u"Empty configuration")
             if isinstance(value, dict):
-                setattr(self, key, Config(content.get(key, {}), _schema=value))
+                setattr(self, key, Config(content.get(key, {}), _schema=value,
+                                          name=self.child_name(key)))
                 self.children.add(key)
             elif isinstance(value, WildcardEntry):
                 self.entries[key] = (content or {}).get(key)
             elif isinstance(value, ConfigEntry):
                 self.parse_entry(key, value, (content or {}).get(key))
             else:
-                log.warning(u"Invalid configuration entry: %s" % key)
+                log.warning(u"Invalid configuration entry: "
+                            u"%s" % self.child_name(key))
 
     def __getattr__(self, item):
         if item in self.entries:
             return self.entries[item]
         raise AttributeError(u"%s not found" % item)
+
+    def child_name(self, key):
+        return '.'.join(filter(None, [self.name, key]))
 
     @staticmethod
     def fail(msg):
@@ -281,24 +289,28 @@ class Config(object):
         """
         Parse and validate single configuration entry using schema.
         """
-        log.debug(u"Parsing configuration entry '%s'" % name)
+        log.debug(u"Parsing configuration entry '%s'" % self.child_name(name))
         if entry_schema.required and value is None:
-            self.fail(u"Missing required configuration entry '%s'" % name)
-        log.debug(u"Cleaning configuration entry '%s'" % name)
+            self.fail(u"Missing required configuration entry: "
+                      u"%s" % self.child_name(name))
+        log.debug(u"Cleaning configuration entry '%s'" % self.child_name(name))
         value = entry_schema.clean(value)
-        log.debug(u"Validating configuration entry '%s'" % name)
+        log.debug(u"Validating configuration entry "
+                  u"'%s'" % self.child_name(name))
         try:
             entry_schema.validate(value)
-        except ConfigurationError:
-            self.fail(u"Configuration entry '%s' is invalid" % name)
+        except ConfigurationError, e:
+            self.fail(u"Configuration entry %s is invalid: %s" % (
+                self.child_name(name), e))
         else:
             if value is not None:
                 self.entries[name] = value
-                log.debug(u"Configuration entry '%s' with value "
-                          u"'%s'" % (name, value))
+                log.debug(u"Configuration entry %s with value "
+                          u"'%s'" % (self.child_name(name), value))
             elif entry_schema.default is not None:
-                log.debug(u"Configuration entry '%s' is missing, using default"
-                          u" value: %s" % (name, entry_schema.default))
+                log.debug(u"Configuration entry %s is missing, using default"
+                          u" value: %s" % (self.child_name(name),
+                                           entry_schema.default))
                 self.entries[name] = entry_schema.default
 
 
