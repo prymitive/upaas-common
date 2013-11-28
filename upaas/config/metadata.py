@@ -33,4 +33,7 @@ class MetadataConfig(base.Config):
             }
         },
         "files": base.DictEntry(value_type=unicode),
+        "uwsgi": {
+            "settings": base.ListEntry(value_type=unicode)
+        }
     }
