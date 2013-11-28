@@ -34,6 +34,19 @@ Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
 
 
+def yaml_include(loader, node):
+    """
+    Adds !include statement for nesting yaml files.
+    """
+    path = node.value
+    log.debug(u"Loading included configuration from %s" % path)
+    if not os.path.exists(path):
+        path = os.path.join(os.path.dirname(loader.stream.name), node.value)
+    with open(path) as inputfile:
+        return yaml.safe_load(inputfile)
+yaml.SafeLoader.add_constructor("!include", yaml_include)
+
+
 class ConfigurationError(Exception):
     """
     Raised if user provided configuration is invalid (missing or invalid
@@ -202,12 +215,12 @@ class Config(object):
         try:
             with open(path) as config_file:
                 content = yaml.safe_load(config_file)
-        except IOError:
-            msg = u"Can't open configuration file '%s'" % path
+        except IOError, e:
+            msg = u"Can't open configuration file '%s': %s" % (path, e)
             log.error(msg)
             raise ConfigurationError(msg)
-        except YAMLError:
-            msg = u"Can't parse yaml file '%s'" % path
+        except YAMLError, e:
+            msg = u"Can't parse yaml file '%s': %s" % (path, e)
             log.error(msg)
             raise ConfigurationError(msg)
 
