@@ -115,16 +115,17 @@ class Builder(object):
         # interpreter action can also be declared only by builder config,
         # but it is taken from interpreter settings key
         for name in self.interpreter_action_names:
+            ret[name] = []
             try:
                 ret[name] = self.config.interpreters[meta.interpreter.type][
                     "any"]["actions"]["setup"][name]
             except KeyError:
-                ret[name] = []
+                pass
             try:
                 ret[name] = self.config.interpreters[meta.interpreter.type][
                     self.interpreter_version]["actions"]["setup"][name]
             except KeyError:
-                ret[name] = []
+                pass
 
         for name in self.app_action_names:
             ret[name] = []
@@ -591,6 +592,9 @@ class Builder(object):
                     log.error(u"Can't write to '%s': %s" % (path, e))
                     return False
         return True
+
+    def umount_filesystems(self, workdir):
+        pass
 
 
 class OSBuilder(Builder):
