@@ -12,6 +12,7 @@ import shutil
 import logging
 
 from upaas.commands import execute
+from upaas.utils import umount_filesystems
 
 log = logging.getLogger(__name__)
 
@@ -140,5 +141,12 @@ def kill_and_remove_dir(directory):
             kill_pid(pid)
         else:
             found = False
-    log.info(u"Removing directory: %s" % directory)
-    shutil.rmtree(directory.encode('utf-8'))
+
+    try:
+        umount_filesystems(directory)
+    except Exception, e:
+        log.error(u"Error while unmounting filesystem inside "
+                  u"package: %s" % e)
+    else:
+        log.info(u"Removing directory: %s" % directory)
+        shutil.rmtree(directory.encode('utf-8'))

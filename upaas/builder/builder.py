@@ -21,6 +21,7 @@ from upaas.builder import exceptions
 from upaas.chroot import Chroot
 from upaas.storage.utils import find_storage_handler
 from upaas.storage.exceptions import StorageError
+from upaas.processes import kill_and_remove_dir
 
 
 log = logging.getLogger(__name__)
@@ -253,10 +254,6 @@ class Builder(object):
         :param system_filename: Use given file as base system, if None empty
                                 system image will be used.
         """
-        def _cleanup(directory):
-            log.info(u"Removing directory '%s'" % directory)
-            shutil.rmtree(directory)
-
         if system_filename and self.storage.exists(system_filename):
             log.info(u"Starting package build using package "
                      u"%s" % system_filename)
@@ -288,7 +285,7 @@ class Builder(object):
 
         if not self.unpack_os(directory, workdir,
                               system_filename=system_filename):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Unpacking OS image failed")
         log.info(u"OS image unpacked")
         result.progress = 10
@@ -298,21 +295,21 @@ class Builder(object):
             self.metadata.interpreter.type, self.interpreter_version))
 
         if not self.run_actions(self.builder_action_names, workdir):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"System actions failed")
         log.info(u"All builder actions executed")
         result.progress = 20
         yield result
 
         if not self.install_packages(workdir, self.os_packages):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.user_error(u"Failed to install OS packages")
         log.info(u"All packages installed")
         result.progress = 35
         yield result
 
         if not self.run_actions(self.interpreter_action_names, workdir, '/'):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Interpreter actions failed")
         log.info(u"All interpreter actions executed")
         result.progress = 40
@@ -323,18 +320,18 @@ class Builder(object):
 
         if system_filename:
             if not self.update(workdir, chroot_homedir):
-                _cleanup(directory)
+                kill_and_remove_dir(directory)
                 self.user_error(u"Updating repository failed")
         else:
             if not self.clone(workdir, chroot_homedir):
-                _cleanup(directory)
+                kill_and_remove_dir(directory)
                 self.user_error(u"Cloning repository failed")
         log.info(u"Application repository ready")
         result.progress = 45
         yield result
 
         if not self.write_files(workdir, chroot_homedir):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.user_error(u"Creating files from metadata failed")
         log.info(u"Created all files from metadata")
         result.progress = 48
@@ -343,28 +340,34 @@ class Builder(object):
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
             self.user_error(u"Application actions failed")
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
         log.info(u"All application actions executed")
         result.progress = 85
         yield result
 
         if not self.run_actions(self.finalize_action_names, workdir, '/'):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Finalize actions failed")
         log.info(u"All final actions executed")
         result.progress = 88
         yield result
 
         if not self.chown_app_dir(workdir, chroot_homedir):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Setting file ownership failed")
         log.info(u"Owner of application directory updated")
         result.progress = 89
         yield result
 
+        if not self.umount_filesystems(workdir):
+            kill_and_remove_dir(directory)
+            self.system_error(u"Failed to unmount filesystems")
+        result.progress = 90
+        yield result
+
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Creating package file failed")
         result.bytes = os.path.getsize(package_path)
         log.info(u"Application package created, "
@@ -380,10 +383,10 @@ class Builder(object):
         try:
             self.storage.put(package_path, checksum)
         except StorageError, e:
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             self.system_error(u"Package upload failed: %s" % e)
 
-        _cleanup(directory)
+        kill_and_remove_dir(directory)
 
         result.progress = 100
         result.storage = self.storage.__class__.__name__
@@ -594,7 +597,16 @@ class Builder(object):
         return True
 
     def umount_filesystems(self, workdir):
-        pass
+        try:
+            utils.umount_filesystems(workdir,
+                                     timeout=self.config.bootstrap.timelimit)
+        except commands.CommandTimeout, e:
+            log.error(u"Can't umount filesystem, timeout reached")
+            return False
+        except commands.CommandFailed, e:
+            log.error(u"Failed to umount filesystem: %s" % e)
+            return False
+        return True
 
 
 class OSBuilder(Builder):

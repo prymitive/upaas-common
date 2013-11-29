@@ -9,6 +9,9 @@ import os
 import shutil
 import logging
 
+from upaas import commands
+from upaas.chroot import Chroot
+
 
 log = logging.getLogger(__name__)
 
@@ -48,3 +51,22 @@ def rmdirs(*args):
         if os.path.isdir(directory):
             log.info(u"Removing directory '%s'" % directory)
             shutil.rmtree(directory)
+
+
+def umount_filesystems(workdir, timeout=60):
+    with Chroot(workdir):
+        mounts = []
+        if os.path.isfile('/etc/mtab'):
+            with open('/etc/mtab') as mtab:
+                for line in mtab:
+                    try:
+                        mount = line.split()[1]
+                    except IndexError:
+                        pass
+                    else:
+                        mounts.append(mount)
+        for mount in mounts:
+            log.info(u"Found mounted filesystem at '%s', "
+                     u"unmounting" % mount)
+            commands.execute('umount %s' % mount, timeout=timeout)
+
