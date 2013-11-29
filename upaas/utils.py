@@ -69,4 +69,3 @@ def umount_filesystems(workdir, timeout=60):
             log.info(u"Found mounted filesystem at '%s', "
                      u"unmounting" % mount)
             commands.execute('umount %s' % mount, timeout=timeout)
-
