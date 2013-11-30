@@ -54,23 +54,17 @@ def rmdirs(*args):
 
 
 def umount_filesystems(workdir, timeout=60):
-    # mounts in host system
     mounts = []
-    if os.path.isfile('/etc/mtab'):
-        with open('/etc/mtab') as mtab:
+    if os.path.isfile("/proc/mounts"):
+        with open("/proc/mounts") as mtab:
             for line in mtab:
                 try:
                     mount = line.split()[1]
                 except IndexError:
                     pass
                 else:
-                    if mount.startswith(workdir):
+                    if mount.startswith(workdir.rstrip('/') + '/'):
                         mounts.append(mount)
     for mount in mounts:
         log.info(u"Found mounted filesystem at '%s', unmounting" % mount)
-        commands.execute('umount %s' % mount, timeout=timeout)
-
-    # mounts inside chroot
-    with Chroot(workdir):
-        log.info(u"Unmounting any filesystem mounted inside %s" % workdir)
-        commands.execute('umount -al', timeout=timeout)
+        commands.execute(u"umount %s" % mount, timeout=timeout)
