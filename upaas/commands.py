@@ -116,7 +116,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
         log.debug(u"Timeout for command is %d seconds" % timeout)
 
     output = []
-    log.debug(u"Running ...")
+    log.debug(u"Running ...", extra={"force_flush": True})
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True)
     try:
