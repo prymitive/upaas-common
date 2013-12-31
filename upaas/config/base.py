@@ -7,21 +7,16 @@
 
 from __future__ import unicode_literals
 
-import types
 import os
 import logging
 
 import yaml
 from yaml import Loader, SafeLoader, YAMLError
 
+from upaas.compat import unicode
+
 
 log = logging.getLogger(__name__)
-
-
-try:
-    unicode = unicode
-except NameError:
-    unicode = str
 
 
 # paths for searching config files

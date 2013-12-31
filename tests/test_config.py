@@ -12,12 +12,7 @@ import os
 import pytest
 
 from upaas.config import base
-
-
-try:
-    unicode = unicode
-except NameError:
-    unicode = str
+from upaas.compat import unicode
 
 
 class BasicConfig(base.Config):
