@@ -18,6 +18,12 @@ from yaml import Loader, SafeLoader, YAMLError
 log = logging.getLogger(__name__)
 
 
+try:
+    unicode = unicode
+except NameError:
+    unicode = str
+
+
 # paths for searching config files
 UPAAS_CONFIG_DIRS = ['.', '/etc/upaas']
 
@@ -187,7 +193,7 @@ class ScriptEntry(ConfigEntry):
     """
 
     def clean(self, value):
-        if isinstance(value, str):
+        if isinstance(value, unicode):
             return [value]
         return value
 

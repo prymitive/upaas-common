@@ -14,6 +14,12 @@ import pytest
 from upaas.config import base
 
 
+try:
+    unicode = unicode
+except NameError:
+    unicode = str
+
+
 class BasicConfig(base.Config):
     schema = {
         "required_string": base.StringEntry(required=True),
@@ -40,7 +46,7 @@ class ListConfigNoType(base.Config):
 
 class DictConfig(base.Config):
     schema = {
-        "mydict": base.DictEntry(value_type=str)
+        "mydict": base.DictEntry(value_type=unicode)
     }
 
 
