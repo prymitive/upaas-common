@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import platform
 
 
@@ -26,5 +28,5 @@ def distro_arch():
 
 def distro_image_filename():
     #FIXME tar.gz is hardcoded?
-    return u"%s-%s-%s.tar.gz" % (distro_name(), distro_version(),
-                                 distro_arch())
+    return "%s-%s-%s.tar.gz" % (distro_name(), distro_version(),
+                                distro_arch())

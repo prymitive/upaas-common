@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import logging
 
 from pymongo import MongoClient
@@ -47,8 +49,8 @@ class MongoDBStorage(BaseStorage):
         try:
             fsfile = fs.get_last_version(filename=remote_path)
             with open(local_path, "wb") as dest:
-                log.info(u"[GET] Copying mongodb:%s to %s" % (remote_path,
-                                                              local_path))
+                log.info("[GET] Copying mongodb:%s to %s" % (remote_path,
+                                                             local_path))
                 while True:
                     data = fsfile.read(4096)
                     if not data:
@@ -56,10 +58,10 @@ class MongoDBStorage(BaseStorage):
                     dest.write(data)
         except NoFile:
             client.disconnect()
-            log.error(u"[GET] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound(u"%s not found" % remote_path)
-        except Exception, e:
-            log.error(u"[GET] Unhandled error: %s" % e)
+            log.error("[GET] File not found: mongodb:%s" % remote_path)
+            raise FileNotFound("%s not found" % remote_path)
+        except Exception as e:
+            log.error("[GET] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError(e)
 
@@ -68,13 +70,13 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
 
         if self.exists(remote_path):
-            raise FileAlreadyExists(u"%s already exists" % remote_path)
+            raise FileAlreadyExists("%s already exists" % remote_path)
 
         gridin = fs.new_file(filename=remote_path)
         try:
             with open(local_path, "rb") as source:
-                log.info(u"[PUT] Copying %s to mongodb:%s" % (local_path,
-                                                              remote_path))
+                log.info("[PUT] Copying %s to mongodb:%s" % (local_path,
+                                                             remote_path))
                 while True:
                     data = source.read(4096)
                     if not data:
@@ -82,8 +84,8 @@ class MongoDBStorage(BaseStorage):
                     gridin.write(data)
                 gridin.close()
             client.disconnect()
-        except Exception, e:
-            log.error(u"[PUT] Unhandled error: %s" % e)
+        except Exception as e:
+            log.error("[PUT] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError(e)
 
@@ -93,13 +95,13 @@ class MongoDBStorage(BaseStorage):
         try:
             fsfile = fs.get_last_version(filename=remote_path)
             fs.delete(fsfile._id)
-            log.info(u"[DELETE] File deleted: mongodb:%s" % remote_path)
+            log.info("[DELETE] File deleted: mongodb:%s" % remote_path)
         except NoFile:
             client.disconnect()
-            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
-            raise FileNotFound(u"%s not found" % remote_path)
-        except Exception, e:
-            log.error(u"[DELETE] Unhandled error: %s" % e)
+            log.error("[DELETE] File not found: mongodb:%s" % remote_path)
+            raise FileNotFound("%s not found" % remote_path)
+        except Exception as e:
+            log.error("[DELETE] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError(e)
 
@@ -117,10 +119,10 @@ class MongoDBStorage(BaseStorage):
             fsfile = fs.get_last_version(filename=remote_path)
         except NoFile:
             client.disconnect()
-            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
+            log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound(e)
-        except Exception, e:
-            log.error(u"[DELETE] Unhandled error: %s" % e)
+        except Exception as e:
+            log.error("[DELETE] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError(e)
         else:
@@ -133,12 +135,12 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
         try:
             fsfile = fs.get_last_version(filename=remote_path)
-        except NoFile, e:
+        except NoFile as e:
             client.disconnect()
-            log.error(u"[DELETE] File not found: mongodb:%s" % remote_path)
+            log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound(e)
-        except Exception, e:
-            log.error(u"[DELETE] Unhandled error: %s" % e)
+        except Exception as e:
+            log.error("[DELETE] Unhandled error: %s" % e)
             client.disconnect()
             raise StorageError(e)
         else:

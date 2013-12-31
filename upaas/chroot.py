@@ -10,6 +10,8 @@
 # - python-script-(or-easy-chroot-class)/
 
 
+from __future__ import unicode_literals
+
 import os
 import logging
 
@@ -19,14 +21,14 @@ log = logging.getLogger(__name__)
 
 class Chroot(object):
 
-    def __init__(self, root, workdir=None, umask=022):
+    def __init__(self, root, workdir=None, umask=0o22):
         self.root = root
         self.dir = '/' if workdir is None else workdir
         self.umask = umask
 
     def __enter__(self):
-        log.debug(u"Entering chroot at '%s', workdir is '%s'" % (self.root,
-                                                                 self.dir))
+        log.debug("Entering chroot at '%s', workdir is '%s'" % (self.root,
+                                                                self.dir))
         self.realdir = os.getcwd()
         self.realroot = os.open('/', os.O_RDONLY)
         os.chroot(self.root)

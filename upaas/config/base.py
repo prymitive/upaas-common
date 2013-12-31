@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import types
 import os
 import logging
@@ -30,8 +32,8 @@ def construct_yaml_str(self, node):
     -strings-as-unicode-objects
     """
     return self.construct_scalar(node)
-Loader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
-SafeLoader.add_constructor(u'tag:yaml.org,2002:str', construct_yaml_str)
+Loader.add_constructor('tag:yaml.org,2002:str', construct_yaml_str)
+SafeLoader.add_constructor('tag:yaml.org,2002:str', construct_yaml_str)
 
 
 def yaml_include(loader, node):
@@ -39,7 +41,7 @@ def yaml_include(loader, node):
     Adds !include statement for nesting yaml files.
     """
     path = node.value
-    log.debug(u"Loading included configuration from %s" % path)
+    log.debug("Loading included configuration from %s" % path)
     if not os.path.exists(path):
         path = os.path.join(os.path.dirname(loader.stream.name), node.value)
     with open(path) as inputfile:
@@ -94,8 +96,8 @@ class IntegerEntry(ConfigEntry):
 
     def __init__(self, min_value=None, max_value=None, *args, **kwargs):
         if min_value and max_value and min_value > max_value:
-            msg = u"Minimal value (%d) must be lower than maximum value " \
-                  u"(%d)!" % (min_value, max_value)
+            msg = "Minimal value (%d) must be lower than maximum value " \
+                  "(%d)!" % (min_value, max_value)
             log.error(msg)
             raise ValueError(msg)
         self.min_value = min_value
@@ -104,13 +106,13 @@ class IntegerEntry(ConfigEntry):
 
     def validate(self, value):
         if value is not None and not isinstance(value, int):
-            self.fail(u"Value must be integer, %s "
-                      u"given" % value.__class__.__name__)
+            self.fail("Value must be integer, %s "
+                      "given" % value.__class__.__name__)
         if value is not None and self.min_value and value < self.min_value:
-            self.fail(u"Value %d is too low, minimal value is %d" % (
+            self.fail("Value %d is too low, minimal value is %d" % (
                       value, self.min_value))
         if value is not None and self.max_value and value > self.max_value:
-            self.fail(u"Value %d is too high, maximal value is %d" % (
+            self.fail("Value %d is too high, maximal value is %d" % (
                       value, self.max_value))
 
 
@@ -118,8 +120,8 @@ class BooleanEntry(ConfigEntry):
 
     def validate(self, value):
         if value is not None and not isinstance(value, bool):
-            self.fail(u"Value must be a bool, %s "
-                      u"given" % value.__class__.__name__)
+            self.fail("Value must be a bool, %s "
+                      "given" % value.__class__.__name__)
 
 
 class ListEntry(ConfigEntry):
@@ -134,15 +136,15 @@ class ListEntry(ConfigEntry):
         if value is None:
             return
         if not isinstance(value, list):
-            self.fail(u"Value must be list, %s "
-                      u"given" % value.__class__.__name__)
+            self.fail("Value must be list, %s "
+                      "given" % value.__class__.__name__)
         if not self.value_type:
             return
         for elem in value:
             if not isinstance(elem, self.value_type):
-                self.fail(u"List element '%r' must be instance of '%s', '%s' "
-                          u"given" % (elem, self.value_type.__name__,
-                                      elem.__class__.__name__))
+                self.fail("List element '%r' must be instance of '%s', '%s' "
+                          "given" % (elem, self.value_type.__name__,
+                                     elem.__class__.__name__))
 
 
 class DictEntry(ConfigEntry):
@@ -157,15 +159,15 @@ class DictEntry(ConfigEntry):
         if value is None:
             return
         if not isinstance(value, dict):
-            self.fail(u"Value must be dict, %s "
-                      u"given" % value.__class__.__name__)
+            self.fail("Value must be dict, %s "
+                      "given" % value.__class__.__name__)
         if not self.value_type:
             return
-        for name, elem in value.items():
+        for name, elem in list(value.items()):
             if not isinstance(elem, self.value_type):
-                self.fail(u"Dict key '%r' value must be instance of '%s', '%s'"
-                          u" given" % (name, self.value_type.__name__,
-                                       elem.__class__.__name__))
+                self.fail("Dict key '%r' value must be instance of '%s', '%s'"
+                          " given" % (name, self.value_type.__name__,
+                                      elem.__class__.__name__))
 
 
 class FSPathEntry(ConfigEntry):
@@ -175,7 +177,7 @@ class FSPathEntry(ConfigEntry):
 
     def validate(self, value):
         if self.must_exist and not os.path.exists(value):
-            self.fail(u"Required path '%s' does not exits" % value)
+            self.fail("Required path '%s' does not exits" % value)
 
 
 class ScriptEntry(ConfigEntry):
@@ -185,7 +187,7 @@ class ScriptEntry(ConfigEntry):
     """
 
     def clean(self, value):
-        if isinstance(value, unicode):
+        if isinstance(value, str):
             return [value]
         return value
 
@@ -215,12 +217,12 @@ class Config(object):
         try:
             with open(path) as config_file:
                 content = yaml.safe_load(config_file)
-        except IOError, e:
-            msg = u"Can't open configuration file '%s': %s" % (path, e)
+        except IOError as e:
+            msg = "Can't open configuration file '%s': %s" % (path, e)
             log.error(msg)
             raise ConfigurationError(msg)
-        except YAMLError, e:
-            msg = u"Can't parse yaml file '%s': %s" % (path, e)
+        except YAMLError as e:
+            msg = "Can't parse yaml file '%s': %s" % (path, e)
             log.error(msg)
             raise ConfigurationError(msg)
 
@@ -235,22 +237,22 @@ class Config(object):
             self.schema = _schema
         self.name = name
 
-        log.debug(u"Parsing key '%s', settings %s, schema %s" % (self.name,
-                                                                 content,
-                                                                 self.schema))
+        log.debug("Parsing key '%s', settings %s, schema %s" % (self.name,
+                                                                content,
+                                                                self.schema))
 
-        if not isinstance(content, (types.DictionaryType, types.NoneType)):
-            self.fail(u"Invalid configuration, expected dict but got "
-                      u"%s" % content.__class__.__name__)
+        if not isinstance(content, (dict, type(None))):
+            self.fail("Invalid configuration, expected dict but got "
+                      "%s" % content.__class__.__name__)
 
         self.content = content
         self.entries = {}
         self.children = set()
 
-        for key, value in self.schema.items():
+        for key, value in list(self.schema.items()):
             if content is None and isinstance(value, ConfigEntry) \
                     and value.required:
-                self.fail(u"Empty configuration")
+                self.fail("Empty configuration")
             if isinstance(value, dict):
                 setattr(self, key, Config(content.get(key, {}), _schema=value,
                                           name=self.child_name(key)))
@@ -260,16 +262,16 @@ class Config(object):
             elif isinstance(value, ConfigEntry):
                 self.parse_entry(key, value, (content or {}).get(key))
             else:
-                log.warning(u"Invalid configuration entry: "
-                            u"%s" % self.child_name(key))
+                log.warning("Invalid configuration entry: "
+                            "%s" % self.child_name(key))
 
     def __getattr__(self, item):
         if item in self.entries:
             return self.entries[item]
-        raise AttributeError(u"%s not found" % item)
+        raise AttributeError("%s not found" % item)
 
     def child_name(self, key):
-        return '.'.join(filter(None, [self.name, key]))
+        return '.'.join([_f for _f in [self.name, key] if _f])
 
     @staticmethod
     def fail(msg):
@@ -302,28 +304,28 @@ class Config(object):
         """
         Parse and validate single configuration entry using schema.
         """
-        log.debug(u"Parsing configuration entry '%s'" % self.child_name(name))
+        log.debug("Parsing configuration entry '%s'" % self.child_name(name))
         if entry_schema.required and value is None:
-            self.fail(u"Missing required configuration entry: "
-                      u"%s" % self.child_name(name))
-        log.debug(u"Cleaning configuration entry '%s'" % self.child_name(name))
+            self.fail("Missing required configuration entry: "
+                      "%s" % self.child_name(name))
+        log.debug("Cleaning configuration entry '%s'" % self.child_name(name))
         value = entry_schema.clean(value)
-        log.debug(u"Validating configuration entry "
-                  u"'%s'" % self.child_name(name))
+        log.debug("Validating configuration entry "
+                  "'%s'" % self.child_name(name))
         try:
             entry_schema.validate(value)
-        except ConfigurationError, e:
-            self.fail(u"Configuration entry %s is invalid: %s" % (
+        except ConfigurationError as e:
+            self.fail("Configuration entry %s is invalid: %s" % (
                 self.child_name(name), e))
         else:
             if value is not None:
                 self.entries[name] = value
-                log.debug(u"Configuration entry %s with value "
-                          u"'%s'" % (self.child_name(name), value))
+                log.debug("Configuration entry %s with value "
+                          "'%s'" % (self.child_name(name), value))
             elif entry_schema.default is not None:
-                log.debug(u"Configuration entry %s is missing, using default"
-                          u" value: %s" % (self.child_name(name),
-                                           entry_schema.default))
+                log.debug("Configuration entry %s is missing, using default"
+                          " value: %s" % (self.child_name(name),
+                                          entry_schema.default))
                 self.entries[name] = entry_schema.default
 
 
@@ -339,27 +341,27 @@ def load_config(cls, filename, directories=UPAAS_CONFIG_DIRS):
 
     paths = [os.path.join(p, filename) for p in directories]
     if os.environ.get('UPAAS_CONFIG_DIR'):
-        log.info(u"Adding directory '%s' from UPAAS_CONFIG_DIR env "
-                 u"variable" % os.environ.get('UPAAS_CONFIG_DIR'))
+        log.info("Adding directory '%s' from UPAAS_CONFIG_DIR env "
+                 "variable" % os.environ.get('UPAAS_CONFIG_DIR'))
         paths = [os.path.join(os.environ.get('UPAAS_CONFIG_DIR'),
                               filename)] + paths
 
     for path in paths:
-        log.debug(u"Trying to load %s config file from %s" % (cls.__name__,
-                                                              path))
+        log.debug("Trying to load %s config file from %s" % (cls.__name__,
+                                                             path))
         if os.path.isfile(path):
-            log.info(u"Loading %s config file from %s" % (cls.__name__,
-                                                          path))
+            log.info("Loading %s config file from %s" % (cls.__name__,
+                                                         path))
             try:
                 upaas_config = cls.from_file(path)
             except ConfigurationError:
-                log.error(u"Invalid %s config file at %s" % (cls.__name__,
-                                                             path))
+                log.error("Invalid %s config file at %s" % (cls.__name__,
+                                                            path))
                 return None
             else:
                 break
 
     if not upaas_config:
-        log.error(u"No config file found for %s" % filename)
+        log.error("No config file found for %s" % filename)
 
     return upaas_config

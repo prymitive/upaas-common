@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import logging
 
 from upaas.config.base import ConfigurationError
@@ -25,17 +27,17 @@ def find_storage_handler(config):
         exec("from %s import %s as storage_handler" % (
             storage_module, storage_class))
     except ImportError:
-        msg = u"Storage handler '%s' could not be " \
-              u"loaded" % config.storage.handler
+        msg = "Storage handler '%s' could not be " \
+              "loaded" % config.storage.handler
         log.error(msg)
         raise ConfigurationError(msg)
     else:
-        log.info(u"Loaded storage handler: "
-                 u"%s" % config.storage.handler)
+        log.info("Loaded storage handler: "
+                 "%s" % config.storage.handler)
         try:
             return storage_handler(config.storage.settings)
         except ConfigurationError:
-            msg = u"Storage handler failed to initialize with given " \
-                  u"configuration"
+            msg = "Storage handler failed to initialize with given " \
+                  "configuration"
             log.error(msg)
             raise ConfigurationError(msg)

@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import time
 import signal
@@ -27,7 +29,7 @@ def directory_pids(directory):
 
     :returns: list of int -- [134, 245, 673, 964]
     """
-    log.debug(u"Scanning for processes running in %s" % directory)
+    log.debug("Scanning for processes running in %s" % directory)
     ret = set()
     if os.path.exists(directory):
         (rcode, output) = execute('lsof -t +d %s' % directory,
@@ -37,11 +39,11 @@ def directory_pids(directory):
                 try:
                     ret.add(int(line))
                 except ValueError:
-                    log.debug(u"Could not convert PID value to int: "
-                              u"'%s'" % line)
+                    log.debug("Could not convert PID value to int: "
+                              "'%s'" % line)
             return sorted(list(ret))
     else:
-        log.debug(u"No such directory: %s" % directory)
+        log.debug("No such directory: %s" % directory)
     return []
 
 
@@ -76,7 +78,7 @@ def get_pid_command(pid):
             ret = proc.read()
         return ret or None
     except Exception as e:
-        log.debug(u"Exception during /proc file parsing: %s" % e)
+        log.debug("Exception during /proc file parsing: %s" % e)
 
 
 def wait_for_pid(pid, kill_after=600):
@@ -95,13 +97,13 @@ def wait_for_pid(pid, kill_after=600):
     elapsed = 0
     while True:
         if is_pid_running(pid):
-            log.debug(u"Waiting for pid %s to terminate (%s seconds "
-                      u"elapsed)" % (pid, elapsed))
+            log.debug("Waiting for pid %s to terminate (%s seconds "
+                      "elapsed)" % (pid, elapsed))
             time.sleep(1)
             elapsed += 1
             if elapsed >= kill_after:
-                log.info(u"%s seconds elapsed, killing process %s" % (elapsed,
-                                                                      pid))
+                log.info("%s seconds elapsed, killing process %s" % (elapsed,
+                                                                     pid))
                 os.kill(pid, signal.SIGKILL)
                 elapsed = 0
                 kill_after = 10
@@ -118,14 +120,14 @@ def kill_pid(pid, timeout=60):
     :type timeout: int
     """
     if pid == os.getpid():
-        log.debug(u"%d is my own PID, will not kill" % pid)
+        log.debug("%d is my own PID, will not kill" % pid)
         return
     cmdline = get_pid_command(pid)
-    log.info(u"Sending SIGTERM to %s [%s]" % (pid, cmdline or 'N/A'))
+    log.info("Sending SIGTERM to %s [%s]" % (pid, cmdline or 'N/A'))
     try:
         os.kill(pid, signal.SIGTERM)
     except OSError:
-        log.debug(u"PID %s already died" % pid)
+        log.debug("PID %s already died" % pid)
     else:
         wait_for_pid(pid, kill_after=timeout)
 
@@ -144,9 +146,9 @@ def kill_and_remove_dir(directory):
 
     try:
         umount_filesystems(directory)
-    except Exception, e:
-        log.error(u"Error while unmounting filesystem inside "
-                  u"package: %s" % e)
+    except Exception as e:
+        log.error("Error while unmounting filesystem inside "
+                  "package: %s" % e)
     else:
-        log.info(u"Removing directory: %s" % directory)
+        log.info("Removing directory: %s" % directory)
         shutil.rmtree(directory.encode('utf-8'))

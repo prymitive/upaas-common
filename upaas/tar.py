@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import logging
 
@@ -24,8 +26,8 @@ def pack_tar(source, archive_path, timeout=None):
     """
     def _cleanup(archive_path):
         try:
-            log.debug(u"Removing incomplete tar archive '%s' if "
-                      u"present" % archive_path)
+            log.debug("Removing incomplete tar archive '%s' if "
+                      "present" % archive_path)
             os.remove(archive_path)
         except OSError:
             pass
@@ -39,16 +41,16 @@ def pack_tar(source, archive_path, timeout=None):
         pass
     else:
         cmd = "tar --use-compress-program=pigz -cpf %s *" % archive_path
-        log.info(u"Using pigz for parallel compression")
+        log.info("Using pigz for parallel compression")
 
     try:
         commands.execute(cmd, timeout=timeout, cwd=source)
     except commands.CommandTimeout:
-        log.error(u"Tar command was taking too long and it was killed")
+        log.error("Tar command was taking too long and it was killed")
         _cleanup(archive_path)
         return False
     except commands.CommandFailed:
-        log.error(u"Tar command failed")
+        log.error("Tar command failed")
         _cleanup(archive_path)
         return False
     else:
@@ -67,10 +69,10 @@ def unpack_tar(archive_path, destination, timeout=None):
         commands.execute("tar -xzpf %s" % archive_path, timeout=timeout,
                          cwd=destination)
     except commands.CommandTimeout:
-        log.error(u"Tar command was taking too long and it was killed")
+        log.error("Tar command was taking too long and it was killed")
         return False
     except commands.CommandFailed:
-        log.error(u"Tar command failed")
+        log.error("Tar command failed")
         return False
     else:
         return True

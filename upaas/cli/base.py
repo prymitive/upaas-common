@@ -5,10 +5,12 @@
 """
 
 
+from __future__ import unicode_literals
+
 import sys
 import codecs
 import logging
-from urlparse import urljoin
+from urllib.parse import urljoin
 
 from plumbum import cli
 
@@ -59,7 +61,7 @@ class UPaaSApplication(cli.Application):
         if prefix:
             prefix += " "
         for line in msg.splitlines():
-            print("%s%s" % (prefix or '', line))
+            print(("%s%s" % (prefix or '', line)))
 
     def handle_error(self, err):
         if isinstance(err, SlumberHttpBaseException):

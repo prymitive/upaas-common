@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import tempfile
 import shutil
@@ -75,7 +77,7 @@ class Builder(object):
         self.interpreter_version = utils.select_best_version(self.config,
                                                              metadata)
         if not self.interpreter_version:
-            self.user_error(u"Unsupported interpreter version")
+            self.user_error("Unsupported interpreter version")
 
         self.actions = self.parse_actions(metadata)
         self.envs = self.parse_envs(metadata)
@@ -103,7 +105,7 @@ class Builder(object):
             except KeyError:
                 pass
             else:
-                log.debug(u"Got '%s' action" % name)
+                log.debug("Got '%s' action" % name)
 
         ret = {}
 
@@ -152,16 +154,16 @@ class Builder(object):
             except AttributeError:
                 pass
             else:
-                log.debug(u"Got '%s' action from app meta" % name)
+                log.debug("Got '%s' action from app meta" % name)
 
         for name in self.builder_action_names + \
                 self.interpreter_action_names + self.app_action_names + \
                 self.finalize_action_names:
             actions = ret.get(name, [])
-            log.info(u"Commands for '%s' action:" % name)
+            log.info("Commands for '%s' action:" % name)
             for action in actions:
                 for line in action.splitlines():
-                    log.info(u"- %s" % line)
+                    log.info("- %s" % line)
 
         return ret
 
@@ -175,8 +177,9 @@ class Builder(object):
             value = self.config.interpreters["env"]
             if value:
                 ret.update(value)
-                log.info(u"Got env variables for all interpreters: %s" % (
-                    u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
+                log.info("Got env variables for all interpreters: %s" % (
+                    ", ".join(["%s=%s" % (k, v) for k, v in list(
+                        value.items())])))
         except KeyError:
             pass
         for version in ["any"] + [self.interpreter_version]:
@@ -188,21 +191,22 @@ class Builder(object):
             except KeyError:
                 pass
             else:
-                log.info(u"Got env variables from %s/%s: %s" % (
+                log.info("Got env variables from %s/%s: %s" % (
                     meta.interpreter.type, version,
-                    u", ".join([u"%s=%s" % (k, v) for k, v in value.items()])))
-                if meta.get(u"env"):
+                    ", ".join(["%s=%s" % (k, v) for k, v in list(
+                        value.items())])))
+                if meta.get("env"):
                     ret.update(meta.env)
-                    log.info(u"Got env variables from app meta: " +
-                             u", ".join([u"%s=%s" % (k, v)
-                                         for k, v in value.items()]))
+                    log.info("Got env variables from app meta: " +
+                             ", ".join(["%s=%s" % (k, v)
+                                       for k, v in list(value.items())]))
 
         if ret:
-            log.info(u"Final env variables:")
-            for key, value in ret.items():
-                log.info(u"%s = %s" % (key, value))
+            log.info("Final env variables:")
+            for key, value in list(ret.items()):
+                log.info("%s = %s" % (key, value))
         else:
-            log.info(u"No env variables set")
+            log.info("No env variables set")
 
         return ret
 
@@ -215,8 +219,8 @@ class Builder(object):
         try:
             for pkg in self.config.interpreters["packages"]:
                 ret.add(pkg)
-                log.debug(u"Will install package '%s' from builder config "
-                          u"for all interpreters" % pkg)
+                log.debug("Will install package '%s' from builder config "
+                          "for all interpreters" % pkg)
         except KeyError:
             pass
         for version in ["any"] + [self.interpreter_version]:
@@ -224,25 +228,25 @@ class Builder(object):
                 for pkg in self.config.interpreters[meta.interpreter.type][
                         version]["packages"]:
                     ret.add(pkg)
-                    log.debug(u"Will install package '%s' from builder config "
-                              u"for interpreter version '%s'" % (pkg, version))
+                    log.debug("Will install package '%s' from builder config "
+                              "for interpreter version '%s'" % (pkg, version))
             except KeyError:
                 pass
             try:
                 for pkg in meta.os[distro.distro_name()]["packages"]:
                     ret.add(pkg)
-                    log.debug(u"Will install package '%s' from metadata for "
-                              u"distribution %s" % (pkg, distro.distro_name()))
+                    log.debug("Will install package '%s' from metadata for "
+                              "distribution %s" % (pkg, distro.distro_name()))
             except KeyError:
                 pass
             try:
                 for pkg in meta.os[distro.distro_name()][
                         distro.distro_version()]["packages"]:
                     ret.add(pkg)
-                    log.debug(u"Will install package '%s' from metadata for "
-                              u"distribution %s, version "
-                              u"%s" % (pkg, distro.distro_name(),
-                                       distro.distro_version()))
+                    log.debug("Will install package '%s' from metadata for "
+                              "distribution %s, version "
+                              "%s" % (pkg, distro.distro_name(),
+                                      distro.distro_version()))
             except KeyError:
                 pass
         return ret
@@ -255,20 +259,20 @@ class Builder(object):
                                 system image will be used.
         """
         if system_filename and self.storage.exists(system_filename):
-            log.info(u"Starting package build using package "
-                     u"%s" % system_filename)
+            log.info("Starting package build using package "
+                     "%s" % system_filename)
         else:
             self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
-            log.info(u"Starting package build using empty system image")
+            log.info("Starting package build using empty system image")
             if not self.has_valid_os_image():
                 try:
                     self.bootstrap_os()
-                except exceptions.OSBootstrapError, e:
-                    self.system_error(u"Error during os bootstrap: %s" % e)
-                except StorageError, e:
-                    self.system_error(u"Error during uploading OS image: "
-                                      u"%s" % e)
+                except exceptions.OSBootstrapError as e:
+                    self.system_error("Error during os bootstrap: %s" % e)
+                except StorageError as e:
+                    self.system_error("Error during uploading OS image: "
+                                      "%s" % e)
 
         result = BuildResult()
         result.parent = system_filename
@@ -279,39 +283,39 @@ class Builder(object):
                                      prefix="upaas_package_").encode("utf-8")
         workdir = os.path.join(directory, "workdir")
         chroot_homedir = self.config.apps.home
-        os.mkdir(workdir, 0755)
-        log.info(u"Working directory created at '%s'" % workdir)
+        os.mkdir(workdir, 0o755)
+        log.info("Working directory created at '%s'" % workdir)
         self.envs['HOME'] = chroot_homedir
 
         if not self.unpack_os(directory, workdir,
                               system_filename=system_filename):
             kill_and_remove_dir(directory)
-            self.system_error(u"Unpacking OS image failed")
-        log.info(u"OS image unpacked")
+            self.system_error("Unpacking OS image failed")
+        log.info("OS image unpacked")
         result.progress = 10
         yield result
 
-        log.info(u"Using interpreter %s, version %s" % (
+        log.info("Using interpreter %s, version %s" % (
             self.metadata.interpreter.type, self.interpreter_version))
 
         if not self.run_actions(self.builder_action_names, workdir):
             kill_and_remove_dir(directory)
-            self.system_error(u"System actions failed")
-        log.info(u"All builder actions executed")
+            self.system_error("System actions failed")
+        log.info("All builder actions executed")
         result.progress = 20
         yield result
 
         if not self.install_packages(workdir, self.os_packages):
             kill_and_remove_dir(directory)
-            self.user_error(u"Failed to install OS packages")
-        log.info(u"All packages installed")
+            self.user_error("Failed to install OS packages")
+        log.info("All packages installed")
         result.progress = 35
         yield result
 
         if not self.run_actions(self.interpreter_action_names, workdir, '/'):
             kill_and_remove_dir(directory)
-            self.system_error(u"Interpreter actions failed")
-        log.info(u"All interpreter actions executed")
+            self.system_error("Interpreter actions failed")
+        log.info("All interpreter actions executed")
         result.progress = 40
         yield result
 
@@ -321,70 +325,70 @@ class Builder(object):
         if system_filename:
             if not self.update(workdir, chroot_homedir):
                 kill_and_remove_dir(directory)
-                self.user_error(u"Updating repository failed")
+                self.user_error("Updating repository failed")
         else:
             if not self.clone(workdir, chroot_homedir):
                 kill_and_remove_dir(directory)
-                self.user_error(u"Cloning repository failed")
-        log.info(u"Application repository ready")
+                self.user_error("Cloning repository failed")
+        log.info("Application repository ready")
         result.progress = 45
         yield result
 
         if not self.write_files(workdir, chroot_homedir):
             kill_and_remove_dir(directory)
-            self.user_error(u"Creating files from metadata failed")
-        log.info(u"Created all files from metadata")
+            self.user_error("Creating files from metadata failed")
+        log.info("Created all files from metadata")
         result.progress = 48
         yield result
 
         if not self.run_actions(self.app_action_names, workdir,
                                 chroot_homedir):
-            self.user_error(u"Application actions failed")
+            self.user_error("Application actions failed")
             kill_and_remove_dir(directory)
-        log.info(u"All application actions executed")
+        log.info("All application actions executed")
         result.progress = 85
         yield result
 
         if not self.run_actions(self.finalize_action_names, workdir, '/'):
             kill_and_remove_dir(directory)
-            self.system_error(u"Finalize actions failed")
-        log.info(u"All final actions executed")
+            self.system_error("Finalize actions failed")
+        log.info("All final actions executed")
         result.progress = 88
         yield result
 
         if not self.chown_app_dir(workdir, chroot_homedir):
             kill_and_remove_dir(directory)
-            self.system_error(u"Setting file ownership failed")
-        log.info(u"Owner of application directory updated")
+            self.system_error("Setting file ownership failed")
+        log.info("Owner of application directory updated")
         result.progress = 89
         yield result
 
         if not self.umount_filesystems(workdir):
             kill_and_remove_dir(directory)
-            self.system_error(u"Failed to unmount filesystems")
+            self.system_error("Failed to unmount filesystems")
         result.progress = 90
         yield result
 
         package_path = os.path.join(directory, "package")
         if not tar.pack_tar(workdir, package_path):
             kill_and_remove_dir(directory)
-            self.system_error(u"Creating package file failed")
+            self.system_error("Creating package file failed")
         result.bytes = os.path.getsize(package_path)
-        log.info(u"Application package created, "
-                 u"%s" % utils.bytes_to_human(result.bytes))
+        log.info("Application package created, "
+                 "%s" % utils.bytes_to_human(result.bytes))
         result.progress = 93
         yield result
 
         checksum = calculate_file_sha256(package_path)
-        log.info(u"Package checksum: %s" % checksum)
+        log.info("Package checksum: %s" % checksum)
         result.progress = 96
         yield result
 
         try:
             self.storage.put(package_path, checksum)
-        except StorageError, e:
+        except StorageError as e:
             kill_and_remove_dir(directory)
-            self.system_error(u"Package upload failed: %s" % e)
+            self.system_error("Package upload failed: %s" % e)
 
         kill_and_remove_dir(directory)
 
@@ -399,16 +403,16 @@ class Builder(object):
             system_filename = distro.distro_image_filename()
 
         os_image_path = os.path.join(directory, "os.image")
-        log.info(u"Fetching OS image '%s'" % system_filename)
+        log.info("Fetching OS image '%s'" % system_filename)
         try:
             self.storage.get(system_filename, os_image_path)
         except StorageError:
-            log.error(u"Storage error while fetching OS image")
+            log.error("Storage error while fetching OS image")
             return False
         else:
-            log.info(u"Unpacking OS image")
+            log.info("Unpacking OS image")
             if not tar.unpack_tar(os_image_path, workdir):
-                log.error(u"Error while unpacking OS image to '%s'" % workdir)
+                log.error("Error while unpacking OS image to '%s'" % workdir)
                 return False
         return True
 
@@ -424,16 +428,16 @@ class Builder(object):
                                      output_loglevel=logging.INFO,
                                      strip_envs=True)
                 except commands.CommandTimeout:
-                    log.error(u"Installing package '%s' is taking to long, "
-                              u"aborting" % name)
+                    log.error("Installing package '%s' is taking to long, "
+                              "aborting" % name)
                     return False
                 except commands.CommandFailed:
-                    log.error(u"Installing package '%s' failed" % name)
+                    log.error("Installing package '%s' failed" % name)
                     return False
         return True
 
     def clone(self, workdir, homedir):
-        log.info(u"Updating repository to '%s'" % homedir)
+        log.info("Updating repository to '%s'" % homedir)
         with Chroot(workdir):
             for cmd in self.metadata.repository.clone:
                 cmd = cmd.replace("%destination%", homedir)
@@ -444,15 +448,15 @@ class Builder(object):
                                      output_loglevel=logging.INFO,
                                      strip_envs=True)
                 except commands.CommandTimeout:
-                    log.error(u"Command is taking too long, aborting")
+                    log.error("Command is taking too long, aborting")
                     return False
                 except commands.CommandFailed:
-                    log.error(u"Command failed")
+                    log.error("Command failed")
                     return False
         return True
 
     def update(self, workdir, homedir):
-        log.info(u"Updating repository in '%s'" % homedir)
+        log.info("Updating repository in '%s'" % homedir)
         with Chroot(workdir, workdir=homedir):
             for cmd in self.metadata.repository.update:
                 cmd = cmd.replace("%destination%", homedir)
@@ -463,16 +467,16 @@ class Builder(object):
                                      output_loglevel=logging.INFO,
                                      strip_envs=True)
                 except commands.CommandTimeout:
-                    log.error(u"Command is taking too long, aborting")
+                    log.error("Command is taking too long, aborting")
                     return False
                 except commands.CommandFailed:
-                    log.error(u"Command failed")
+                    log.error("Command failed")
                     return False
         return True
 
     def run_actions(self, actions, workdir, homedir='/'):
         for name in actions:
-            log.info(u"Executing '%s' setup actions" % name)
+            log.info("Executing '%s' setup actions" % name)
             for cmd in self.actions[name]:
                 with Chroot(workdir, workdir=homedir):
                     try:
@@ -481,11 +485,11 @@ class Builder(object):
                             env=self.envs, output_loglevel=logging.INFO,
                             strip_envs=True)
                     except commands.CommandTimeout:
-                        log.error(u"Command is taking too long to execute, "
-                                  u"aborting")
+                        log.error("Command is taking too long to execute, "
+                                  "aborting")
                         return False
-                    except commands.CommandFailed, e:
-                        log.error(u"Execution failed: %s" % e)
+                    except commands.CommandFailed as e:
+                        log.error("Execution failed: %s" % e)
                         return False
         return True
 
@@ -497,10 +501,10 @@ class Builder(object):
                 commands.execute(cmd, timeout=self.config.commands.timelimit,
                                  output_loglevel=logging.INFO, strip_envs=True)
             except commands.CommandTimeout:
-                log.error(u"chown is taking too long to execute, aborting")
+                log.error("chown is taking too long to execute, aborting")
                 return False
             except commands.CommandFailed:
-                log.error(u"chown failed")
+                log.error("chown failed")
                 return False
         return True
 
@@ -514,7 +518,7 @@ class Builder(object):
         os_mtime = self.storage.mtime(distro.distro_image_filename())
         delta = datetime.datetime.now() - os_mtime
         if delta > datetime.timedelta(days=self.config.bootstrap.maxage):
-            log.info(u"OS image is too old (%d days)" % delta.days)
+            log.info("OS image is too old (%d days)" % delta.days)
             self.storage.delete(distro.distro_image_filename())
             return False
 
@@ -525,16 +529,16 @@ class Builder(object):
         Bootstrap base OS image.
         """
         def _cleanup(directory):
-            log.info(u"Removing directory '%s'" % directory)
+            log.info("Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
-        log.info(u"Bootstrapping new OS image")
+        log.info("Bootstrapping new OS image")
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
                                      prefix="upaas_bootstrap_").encode("utf-8")
-        log.debug(u"Created temporary directory for bootstrap at "
-                  u"'%s'" % directory)
+        log.debug("Created temporary directory for bootstrap at "
+                  "'%s'" % directory)
 
         for cmd in self.config.bootstrap.commands:
             cmd = cmd.replace("%workdir%", directory)
@@ -542,57 +546,57 @@ class Builder(object):
                 commands.execute(cmd, timeout=self.config.bootstrap.timelimit,
                                  cwd=directory, env=self.config.bootstrap.env,
                                  strip_envs=True)
-            except commands.CommandTimeout, e:
-                log.error(u"Bootstrap was taking too long and it was killed")
+            except commands.CommandTimeout as e:
+                log.error("Bootstrap was taking too long and it was killed")
                 _cleanup(directory)
                 raise exceptions.OSBootstrapError(e)
-            except commands.CommandFailed, e:
-                log.error(u"Bootstrap command failed")
+            except commands.CommandFailed as e:
+                log.error("Bootstrap command failed")
                 _cleanup(directory)
                 raise exceptions.OSBootstrapError(e)
-        log.info(u"All commands completed, installing packages")
+        log.info("All commands completed, installing packages")
 
         self.install_packages(directory, self.config.bootstrap.packages)
-        log.info(u"Bootstrap done, packing image")
+        log.info("Bootstrap done, packing image")
 
         archive_path = os.path.join(directory, "image.tar.gz")
         if not tar.pack_tar(directory, archive_path,
                             timeout=self.config.bootstrap.timelimit):
             _cleanup(directory)
-            raise exceptions.OSBootstrapError(u"Tar error")
+            raise exceptions.OSBootstrapError("Tar error")
         else:
-            log.info(u"Image packed, uploading")
+            log.info("Image packed, uploading")
 
         try:
             self.storage.put(archive_path, distro.distro_image_filename())
-        except Exception, e:
-            log.error(u"Upload failed: %s" % e)
+        except Exception as e:
+            log.error("Upload failed: %s" % e)
             raise
 
-        log.info(u"Image uploaded")
+        log.info("Image uploaded")
         _cleanup(directory)
-        log.info(u"All done")
+        log.info("All done")
 
     def write_files(self, workdir, chroot_homedir):
         """
         Create all files specified in metadata 'files' section.
         """
         with Chroot(workdir, workdir=chroot_homedir):
-            for path, content in self.metadata.files.items():
+            for path, content in list(self.metadata.files.items()):
                 basedir = os.path.dirname(path)
                 if basedir and not os.path.exists(basedir):
                     try:
                         os.makedirs(basedir)
-                    except Exception, e:
-                        log.error(u"Can't create base directory (%s): %s" % (
+                    except Exception as e:
+                        log.error("Can't create base directory (%s): %s" % (
                             basedir, e))
                         return False
-                log.info(u"Creating metadata file: %s" % path)
+                log.info("Creating metadata file: %s" % path)
                 try:
                     with open(path, 'w') as out:
                         out.write(content)
-                except Exception, e:
-                    log.error(u"Can't write to '%s': %s" % (path, e))
+                except Exception as e:
+                    log.error("Can't write to '%s': %s" % (path, e))
                     return False
         return True
 
@@ -600,11 +604,11 @@ class Builder(object):
         try:
             utils.umount_filesystems(workdir,
                                      timeout=self.config.bootstrap.timelimit)
-        except commands.CommandTimeout, e:
-            log.error(u"Can't umount filesystem, timeout reached")
+        except commands.CommandTimeout as e:
+            log.error("Can't umount filesystem, timeout reached")
             return False
-        except commands.CommandFailed, e:
-            log.error(u"Failed to umount filesystem: %s" % e)
+        except commands.CommandFailed as e:
+            log.error("Failed to umount filesystem: %s" % e)
             return False
         return True
 

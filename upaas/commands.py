@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import subprocess
 import signal
@@ -68,55 +70,55 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     :returns: tuple -- (return code, output as list of strings)
     """
     def _alarm_handler(signum, frame):
-        raise CommandTimeout(u"Command timeout reached")
+        raise CommandTimeout("Command timeout reached")
 
     def _cleanup(workdir, original_env):
         if workdir:
-            log.debug(u"Switching back to workdir at '%s'" % workdir)
+            log.debug("Switching back to workdir at '%s'" % workdir)
             os.chdir(workdir)
-        for key, value in original_env.items():
+        for key, value in list(original_env.items()):
             if value:
-                log.debug(u"Restoring original ENV variable %s=%s" % (key,
-                                                                      value))
+                log.debug("Restoring original ENV variable %s=%s" % (key,
+                                                                     value))
                 os.environ[key] = value
             else:
-                log.debug(u"Deleting extra ENV variable %s" % key)
+                log.debug("Deleting extra ENV variable %s" % key)
                 try:
                     del os.environ[key]
                 except KeyError:
                     pass
 
-    log.info(u"Executing command: %s" % cmd, extra={"force_flush": True})
+    log.info("Executing command: %s" % cmd, extra={"force_flush": True})
 
     wd = None
     if cwd:
         wd = os.getcwd()
-        log.info(u"Changing working directory to '%s'" % cwd)
+        log.info("Changing working directory to '%s'" % cwd)
         os.chdir(cwd)
 
     original_env = {}
     if strip_envs:
-        for ename, evalue in os.environ.items():
-            if ename not in (env.keys() + SAFE_ENVS):
-                log.debug(u"Removing unsafe ENV variable %s=%s" % (ename,
-                                                                   evalue))
+        for ename, evalue in list(os.environ.items()):
+            if ename not in (list(env.keys()) + SAFE_ENVS):
+                log.debug("Removing unsafe ENV variable %s=%s" % (ename,
+                                                                  evalue))
                 original_env[ename] = evalue
                 del os.environ[ename]
 
-    for ename, evalue in env.items():
-        log.debug(u"Setting ENV variable %s=%s" % (ename, evalue))
+    for ename, evalue in list(env.items()):
+        log.debug("Setting ENV variable %s=%s" % (ename, evalue))
         orgval = os.environ.get(ename)
-        log.debug(u"Saving original ENV value %s=%s" % (ename, orgval))
+        log.debug("Saving original ENV value %s=%s" % (ename, orgval))
         original_env[ename] = orgval
         os.environ[ename] = evalue
 
     if timeout:
         signal.signal(signal.SIGALRM, _alarm_handler)
         signal.alarm(timeout)
-        log.debug(u"Timeout for command is %d seconds" % timeout)
+        log.debug("Timeout for command is %d seconds" % timeout)
 
     output = []
-    log.debug(u"Running ...")
+    log.debug("Running ...")
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                          shell=True)
     try:
@@ -131,8 +133,8 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     except CommandTimeout:
         os.kill(p.pid, signal.SIGKILL)
         _cleanup(wd, original_env)
-        raise CommandTimeout(u"Command timeout reached")
-    except KeyboardInterrupt, e:
+        raise CommandTimeout("Command timeout reached")
+    except KeyboardInterrupt as e:
         if timeout:
             signal.alarm(0)
         os.kill(p.pid, signal.SIGKILL)
@@ -145,7 +147,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     _cleanup(wd, original_env)
 
     if retcode not in valid_retcodes:
-        msg = u"Command failed with status %d" % retcode
+        msg = "Command failed with status %d" % retcode
         log.error(msg)
         raise CommandFailed(msg)
 

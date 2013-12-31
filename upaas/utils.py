@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import shutil
 import logging
@@ -43,13 +45,14 @@ def select_best_version(config, metadata):
             valid_versions[version_to_tuple(version)] = version
 
     if valid_versions:
-        return valid_versions[sorted(valid_versions.keys(), reverse=True)[0]]
+        return valid_versions[sorted(list(valid_versions.keys()),
+                                     reverse=True)[0]]
 
 
 def rmdirs(*args):
     for directory in args:
         if os.path.isdir(directory):
-            log.info(u"Removing directory '%s'" % directory)
+            log.info("Removing directory '%s'" % directory)
             shutil.rmtree(directory)
 
 
@@ -66,5 +69,5 @@ def umount_filesystems(workdir, timeout=60):
                     if mount.startswith(workdir.rstrip('/') + '/'):
                         mounts.append(mount)
     for mount in mounts:
-        log.info(u"Found mounted filesystem at '%s', unmounting" % mount)
-        commands.execute(u"umount %s" % mount, timeout=timeout)
+        log.info("Found mounted filesystem at '%s', unmounting" % mount)
+        commands.execute("umount %s" % mount, timeout=timeout)
