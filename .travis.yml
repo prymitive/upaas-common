@@ -6,16 +6,10 @@ python:
   - 3.3
 
 install:
-  - pip install -Ur requirements.txt --use-mirrors --download-cache $HOME/.pip-cache
-  - pip install -Ur requirements-test.txt --use-mirrors --download-cache $HOME/.pip-cache
+  - pip install -Ur requirements.txt --use-mirrors
+  - pip install -Ur requirements-test.txt --use-mirrors
 
 script: "py.test -vs --pep8 --cov upaas"
 
 services:
   - mongodb
-
-cache:
-  directories:
-  - $HOME/.pip-cache/
-  - /home/travis/virtualenv/python2.6/lib/python2.6/site-packages
-  - /home/travis/virtualenv/python2.7/lib/python2.7/site-packages
