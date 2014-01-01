@@ -1,6 +1,6 @@
 pyyaml==3.10
 plumbum==1.4.0
 tastypie-queryset-client==0.7.2
-requests==0.8.2
+requests==2.1.0
 pymongo==2.6.3
 netifaces-py3==0.8
