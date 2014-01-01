@@ -18,8 +18,8 @@ def empty_dir(request):
 
     def cleanup():
         shutil.rmtree(directory)
-
     request.addfinalizer(cleanup)
+
     return directory
 
 
@@ -29,6 +29,6 @@ def empty_file(request):
 
     def cleanup():
         os.remove(path)
-
     request.addfinalizer(cleanup)
+
     return path
