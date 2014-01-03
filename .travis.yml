@@ -9,7 +9,7 @@ install:
   - pip install -Ur requirements-test.txt --use-mirrors
 
 script:
-  - py.test -vs --pep8 --cov upaas
+  - coverage run --rcfile=.coveragerc `which py.test` -v --pep8
 
 after_success:
   - coveralls

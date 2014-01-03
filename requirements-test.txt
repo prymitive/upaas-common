@@ -1,5 +1,5 @@
 pytest==2.5.1
-pytest-cov==1.6
 pytest-pep8==1.0.5
 pytest-capturelog==0.7
+coverage==3.7.1
 python-coveralls==2.4.2
