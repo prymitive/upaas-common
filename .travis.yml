@@ -8,7 +8,11 @@ install:
   - pip install -Ur requirements.txt --use-mirrors
   - pip install -Ur requirements-test.txt --use-mirrors
 
-script: "py.test -vs --pep8 --cov upaas"
+script:
+  - py.test -vs --pep8 --cov upaas
+
+after_success:
+  - coveralls
 
 services:
   - mongodb
