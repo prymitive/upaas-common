@@ -117,7 +117,7 @@ class MongoDBStorage(BaseStorage):
         fs = GridFS(client[self.settings.database])
         try:
             fsfile = fs.get_last_version(filename=remote_path)
-        except NoFile:
+        except NoFile as e:
             client.disconnect()
             log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound(e)

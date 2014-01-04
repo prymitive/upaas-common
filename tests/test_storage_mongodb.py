@@ -5,6 +5,8 @@
 """
 
 
+from __future__ import unicode_literals
+
 import os
 import time
 import datetime
@@ -14,6 +16,7 @@ import pytest
 from pymongo import MongoClient
 
 from upaas.storage.mongodb import MongoDBStorage
+from upaas.storage.exceptions import FileNotFound
 from upaas.config.base import ConfigurationError
 
 
@@ -44,6 +47,11 @@ def test_not_exists(storage):
     assert storage.exists("missing_file") is False
 
 
+def test_get_not_exists(storage):
+    with pytest.raises(FileNotFound):
+        storage.get("missing file", "output")
+
+
 def test_put_and_get(storage, empty_dir, empty_file):
     storage.put(empty_file, "abc")
     assert storage.exists("abc")
@@ -51,6 +59,11 @@ def test_put_and_get(storage, empty_dir, empty_file):
     local_path = os.path.join(empty_dir, "xyz")
     storage.get("abc", local_path)
     assert os.path.exists(local_path)
+
+
+def test_delete_not_exists(storage):
+    with pytest.raises(FileNotFound):
+        storage.delete("missing file")
 
 
 def test_put_and_delete(storage, empty_file):
