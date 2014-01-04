@@ -8,7 +8,7 @@
 
 from __future__ import unicode_literals
 
-from setuptools import setup
+from setuptools import setup, find_packages
 
 try:
     from pip.req import parse_requirements
@@ -26,7 +26,7 @@ setup(
     author='Łukasz Mierzwa',
     author_email='l.mierzwa@gmail.com',
     url='https://github.com/prymitive/upaas-common',
-    packages=['upaas'],
+    packages=find_packages(),
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Intended Audience :: Developers',
