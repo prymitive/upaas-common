@@ -26,7 +26,7 @@ setup(
     author='Łukasz Mierzwa',
     author_email='l.mierzwa@gmail.com',
     url='https://github.com/prymitive/upaas-common',
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     classifiers=[
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Intended Audience :: Developers',
