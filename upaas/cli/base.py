@@ -10,7 +10,10 @@ from __future__ import unicode_literals
 import sys
 import codecs
 import logging
-from urllib.parse import urljoin
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
 
 from plumbum import cli
 
