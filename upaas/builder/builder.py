@@ -73,6 +73,9 @@ class Builder(object):
         """
         self.metadata = metadata
         self.config = builder_config
+        self.envs = {}
+        self.actions = {}
+        self.os_packages = []
 
         self.interpreter_version = utils.select_best_version(self.config,
                                                              metadata)
@@ -277,9 +280,9 @@ class Builder(object):
         if not self.interpreter_version:
             self.user_error("Unsupported interpreter version")
 
-        self.actions = self.parse_actions(self.metadata)
-        self.envs = self.parse_envs(self.metadata)
-        self.os_packages = self.parse_packages(self.metadata)
+        self.actions.update(self.parse_actions(self.metadata))
+        self.envs.update(self.parse_envs(self.metadata))
+        self.os_packages += self.parse_packages(self.metadata)
 
         result = BuildResult()
         result.parent = system_filename
