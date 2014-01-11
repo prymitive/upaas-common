@@ -76,13 +76,6 @@ class Builder(object):
 
         self.interpreter_version = utils.select_best_version(self.config,
                                                              metadata)
-        if not self.interpreter_version:
-            self.user_error("Unsupported interpreter version")
-
-        self.actions = self.parse_actions(metadata)
-        self.envs = self.parse_envs(metadata)
-        self.os_packages = self.parse_packages(metadata)
-        self.storage = find_storage_handler(self.config)
 
     def user_error(self, msg):
         log.error(msg)
@@ -251,12 +244,14 @@ class Builder(object):
                 pass
         return ret
 
-    def build_package(self, system_filename=None):
+    def build_package(self, system_filename=None, interpreter_version=None):
         """
         Build a package
 
         :param system_filename: Use given file as base system, if None empty
                                 system image will be used.
+        :param interpreter_version: Use specific interpreter version, only used
+                                    for fresh packages.
         """
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
@@ -265,6 +260,10 @@ class Builder(object):
             self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
             log.info("Starting package build using empty system image")
+            if interpreter_version:
+                self.interpreter_version = interpreter_version
+                log.info("Using forced interpreter version: "
+                         "%s" % interpreter_version)
             if not self.has_valid_os_image():
                 try:
                     self.bootstrap_os()
@@ -273,6 +272,14 @@ class Builder(object):
                 except StorageError as e:
                     self.system_error("Error during uploading OS image: "
                                       "%s" % e)
+
+        if not self.interpreter_version:
+            self.user_error("Unsupported interpreter version")
+
+        self.actions = self.parse_actions(self.metadata)
+        self.envs = self.parse_envs(self.metadata)
+        self.os_packages = self.parse_packages(self.metadata)
+        self.storage = find_storage_handler(self.config)
 
         result = BuildResult()
         result.parent = system_filename

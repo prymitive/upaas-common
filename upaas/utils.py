@@ -30,23 +30,33 @@ def version_to_tuple(v):
     return tuple(map(int, (v.split("."))))
 
 
-def select_best_version(config, metadata):
+def version_tuple_to_string(version):
+    return '.'.join(str(v) for v in version)
+
+
+def supported_versions(config, metadata):
     """
-    Return highest supported version or None.
+    Return list of versions from metadata that are supported localy.
     """
     valid_versions = {}
-
     for version in metadata.interpreter.versions:
         try:
             _ = config.interpreters[metadata.interpreter.type][version]
         except KeyError:
             pass
         else:
-            valid_versions[version_to_tuple(version)] = version
+            valid_versions[version] = version_to_tuple(version)
+    return valid_versions
 
+
+def select_best_version(config, metadata):
+    """
+    Return highest supported version or None.
+    """
+    valid_versions = supported_versions(config, metadata)
     if valid_versions:
-        return valid_versions[sorted(list(valid_versions.keys()),
-                                     reverse=True)[0]]
+        return version_tuple_to_string(
+            sorted(list(valid_versions.values()), reverse=True)[0])
 
 
 def rmdirs(*args):
