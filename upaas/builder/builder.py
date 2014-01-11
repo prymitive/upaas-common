@@ -253,6 +253,7 @@ class Builder(object):
         :param interpreter_version: Use specific interpreter version, only used
                                     for fresh packages.
         """
+        self.storage = find_storage_handler(self.config)
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
                      "%s" % system_filename)
@@ -279,7 +280,6 @@ class Builder(object):
         self.actions = self.parse_actions(self.metadata)
         self.envs = self.parse_envs(self.metadata)
         self.os_packages = self.parse_packages(self.metadata)
-        self.storage = find_storage_handler(self.config)
 
         result = BuildResult()
         result.parent = system_filename
