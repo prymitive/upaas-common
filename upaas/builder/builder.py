@@ -256,6 +256,11 @@ class Builder(object):
         :param interpreter_version: Use specific interpreter version, only used
                                     for fresh packages.
         """
+        if interpreter_version:
+            self.interpreter_version = interpreter_version
+            log.info("Using forced interpreter version: "
+                     "%s" % interpreter_version)
+
         self.storage = find_storage_handler(self.config)
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
@@ -264,10 +269,6 @@ class Builder(object):
             self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
             log.info("Starting package build using empty system image")
-            if interpreter_version:
-                self.interpreter_version = interpreter_version
-                log.info("Using forced interpreter version: "
-                         "%s" % interpreter_version)
             if not self.has_valid_os_image():
                 try:
                     self.bootstrap_os()
