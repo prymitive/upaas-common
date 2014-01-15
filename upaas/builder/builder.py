@@ -425,7 +425,18 @@ class Builder(object):
             if not tar.unpack_tar(os_image_path, workdir):
                 log.error("Error while unpacking OS image to '%s'" % workdir)
                 return False
-        return True
+        # verify if os is working
+        log.info("Checking if OS image is working (will execute /bin/true)")
+        try:
+            with Chroot(workdir):
+                commands.execute('/bin/true',
+                                 timeout=self.config.commands.timelimit,
+                                 output_loglevel=logging.INFO)
+        except Exception as e:
+            log.error("Broken OS image! /bin/true failed: %s" % e)
+            return False
+        else:
+            return True
 
     def install_packages(self, workdir, packages):
         with Chroot(workdir):
