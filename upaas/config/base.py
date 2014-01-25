@@ -306,7 +306,8 @@ class Config(object):
         Parse and validate single configuration entry using schema.
         """
         log.debug("Parsing configuration entry '%s'" % self.child_name(name))
-        if entry_schema.required and value is None:
+        if entry_schema.required and value is None and \
+                entry_schema.default is None:
             self.fail("Missing required configuration entry: "
                       "%s" % self.child_name(name))
         log.debug("Cleaning configuration entry '%s'" % self.child_name(name))
