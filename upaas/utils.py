@@ -12,7 +12,6 @@ import shutil
 import logging
 
 from upaas import commands
-from upaas.chroot import Chroot
 
 
 log = logging.getLogger(__name__)
