@@ -536,7 +536,7 @@ class Builder(object):
                     replace=[
                         ('%old%', self.current_revision),
                         ('%new%', ret['id']),
-                    ]),
+                    ])
 
         if 'date' in ret:
             try:
