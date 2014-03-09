@@ -17,7 +17,7 @@ from upaas.compat import unicode
 log = logging.getLogger(__name__)
 
 
-class VCSScript(base.ScriptEntry):
+class VCSScript(base.StringEntry):
 
     entry_name = None
     commands = {}
@@ -28,20 +28,20 @@ class VCSScript(base.ScriptEntry):
     def detect(self):
         if os.path.isdir('.git'):
             self.log_msg("git detected, using '%s'" % self.commands['git'])
-            return [self.commands['git']]
+            return self.commands['git']
         elif os.path.isdir('.svn'):
             self.log_msg("svn detected using '%s'" % self.commands['svn'])
-            return [self.commands['svn']]
+            return self.commands['svn']
         elif os.path.isdir('.bzr'):
             self.log_msg("bazaar detected using '%s'" % self.commands['bzr'])
-            return [self.commands['bzr']]
+            return self.commands['bzr']
         elif os.path.isdir('.hg'):
             self.log_msg("mercurial detected using '%s'" % self.commands['hg'])
-            return [self.commands['hg']]
+            return self.commands['hg']
         else:
             self.log_msg("unknown repository type, using "
                          "'%s'" % self.commands['unknown'])
-            return [self.commands['unknown']]
+            return self.commands['unknown']
 
     default = detect
 
