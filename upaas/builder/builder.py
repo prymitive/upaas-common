@@ -85,6 +85,8 @@ class Builder(object):
         self.interpreter_version = utils.select_best_version(self.config,
                                                              metadata)
 
+        self.current_revision = None
+
     def user_error(self, msg):
         log.error(msg)
         raise exceptions.PackageUserError(msg)
@@ -252,7 +254,8 @@ class Builder(object):
                 pass
         return ret
 
-    def build_package(self, system_filename=None, interpreter_version=None):
+    def build_package(self, system_filename=None, interpreter_version=None,
+                      current_revision=None):
         """
         Build a package
 
@@ -260,6 +263,7 @@ class Builder(object):
                                 system image will be used.
         :param interpreter_version: Use specific interpreter version, only used
                                     for fresh packages.
+        :param current_revision: VCS revision id from current package.
         """
         if interpreter_version:
             self.interpreter_version = interpreter_version
@@ -270,6 +274,10 @@ class Builder(object):
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
                      "%s" % system_filename)
+            if current_revision:
+                log.info("VCS revision from current package: "
+                         "%s" % current_revision)
+                self.current_revision = current_revision
         else:
             self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
@@ -490,10 +498,13 @@ class Builder(object):
         ret = {}
         log.info("Extracting information about last commit")
         with Chroot(workdir, workdir=homedir):
-            def vcs_cmd(name, cmd):
+            def vcs_cmd(name, cmd, replace=None):
                 name = 'repository.revision.%s' % name
                 if hasattr(cmd, '__call__'):
                     cmd = cmd()
+                if replace:
+                    for (rold, rnew) in replace:
+                        cmd = cmd.replace(rold, rnew)
                 try:
                     _, output = commands.execute(
                         cmd, timeout=self.config.commands.timelimit,
@@ -516,9 +527,16 @@ class Builder(object):
                 'description': vcs_cmd(
                     'description',
                     self.metadata.repository.revision.description),
-                'changelog': vcs_cmd(
-                    'changelog', self.metadata.repository.revision.changelog),
             }
+
+            if self.current_revision:
+                ret['changelog'] = vcs_cmd(
+                    'changelog',
+                    self.metadata.repository.revision.changelog,
+                    replace=[
+                        ('%old%', self.current_revision),
+                        ('%new%', ret['id']),
+                    ]),
 
         if 'date' in ret:
             try:

@@ -52,7 +52,8 @@ def test_revision_command():
 
 def test_author_detect():
     meta = MetadataConfig.from_string(MetadataDetect)
-    assert meta.repository.revision.author() == "git log -1 --pretty='%aN <%aE>'"
+    assert meta.repository.revision.author() == \
+        "git log -1 --pretty='%aN <%aE>'"
 
 
 def test_author_command():
