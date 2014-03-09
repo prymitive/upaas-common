@@ -529,7 +529,7 @@ class Builder(object):
                     self.metadata.repository.revision.description),
             }
 
-            if self.current_revision:
+            if self.current_revision and self.current_revision != ret['id']:
                 ret['changelog'] = vcs_cmd(
                     'changelog',
                     self.metadata.repository.revision.changelog,
