@@ -17,60 +17,94 @@ from upaas.compat import unicode
 log = logging.getLogger(__name__)
 
 
-class RevisionEntry(base.ScriptEntry):
+class VCSScript(base.ScriptEntry):
+
+    entry_name = None
+    commands = {}
 
     def log_msg(self, msg):
-        log.info("repository.revision autodetect - %s" % msg)
+        log.info("%s autodetect - %s" % (self.entry_name, msg))
 
-    def detect_revision(self):
+    def detect(self):
         if os.path.isdir('.git'):
-            self.log_msg("git detected")
-            return ['git rev-parse HEAD']
+            self.log_msg("git detected, using '%s'" % self.commands['git'])
+            return [self.commands['git']]
         elif os.path.isdir('.svn'):
-            self.log_msg("svn detected")
-            return ["svn info -r 'HEAD' --non-interactive --trust-server-cert"
-                    " | grep Revision | egrep -o '[0-9]+'"]
+            self.log_msg("svn detected using '%s'" % self.commands['svn'])
+            return [self.commands['svn']]
         elif os.path.isdir('.bzr'):
-            self.log_msg("bazaar detected")
-            return ['bzr revno']
+            self.log_msg("bazaar detected using '%s'" % self.commands['bzr'])
+            return [self.commands['bzr']]
         elif os.path.isdir('.hg'):
-            self.log_msg("mercurial detected")
-            return ['hg id -i']
+            self.log_msg("mercurial detected using '%s'" % self.commands['hg'])
+            return [self.commands['hg']]
         else:
-            self.log_msg("unknown repository type, using root directory "
-                         "modification time as revision number")
-            return ['date +%s -r .']
+            self.log_msg("unknown repository type, using "
+                         "'%s'" % self.commands['unknown'])
+            return [self.commands['unknown']]
 
-    default = detect_revision
+    default = detect
 
 
-class AuthorEntry(base.ScriptEntry):
+class VCSRevisionEntry(VCSScript):
 
-    def log_msg(self, msg):
-        log.info("repository.author autodetect - %s" % msg)
+    entry_name = 'repository.revision'
 
-    def detect_revision(self):
-        if os.path.isdir('.git'):
-            self.log_msg("git detected")
-            return ["git log -1 --pretty='%aN <%aE>'"]
-        elif os.path.isdir('.svn'):
-            self.log_msg("svn detected")
-            return ["svn info -r 'HEAD' --non-interactive --trust-server-cert "
-                    "| grep 'Last Changed Author:' "
-                    "| sed s/'^Last Changed Author: '/''/"]
-        elif os.path.isdir('.bzr'):
-            self.log_msg("bazaar detected")
-            return ["bzr log -l 1 | grep 'committer:' "
-                    "| sed s/'committer: '/''/"]
-        elif os.path.isdir('.hg'):
-            self.log_msg("mercurial detected")
-            return ["hg log -r . --template='{author}'"]
-        else:
-            self.log_msg("unknown repository type, can't detect current "
-                         "revision author")
-            return ['anonymous']
+    commands = {
+        'git': 'git rev-parse HEAD',
+        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+               "| grep Revision | egrep -o '[0-9]+'",
+        'bzr': 'bzr revno',
+        'hg': 'hg id -i',
+        'unknown': 'date +%s -r .',
+    }
 
-    default = detect_revision
+
+class VCSAuthorEntry(VCSScript):
+
+    entry_name = 'repository.author'
+
+    commands = {
+        'git': "git log -1 --pretty='%aN <%aE>'",
+        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+               "| grep 'Last Changed Author:' "
+               "| sed s/'^Last Changed Author: '/''/",
+        'bzr': "bzr log -l 1 | grep 'committer:' | sed s/'committer: '/''/",
+        'hg': "hg log -r . --template='{author}'",
+        'unknown': "echo 'no author information available'",
+    }
+
+
+class VCSDateEntry(VCSScript):
+
+    entry_name = 'repository.date'
+
+    commands = {
+        'git': "git log -1 --pretty='%at'",
+        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+               "| grep 'Last Changed Date:' "
+               "| sed s/'^Last Changed Date: '/''/ "
+               "| cut -d '(' -f 1",
+        'bzr': "bzr version-info --custom --template '{date}'",
+        'hg': "hg log -r . --template='{date}'",
+        'unknown': 'date +%s -r .',
+    }
+
+
+class VCSDescriptionEntry(VCSScript):
+
+    entry_name = 'repository.description'
+
+    commands = {
+        'git': "git log -1 --pretty='%B'",
+        'svn': "svn log -r COMMITTED --non-interactive --trust-server-cert "
+               "| egrep -v '^\-+$' "
+               "| tail -n +3",
+        'bzr': "bzr log -l 1 | egrep -v '^-+$|^revno:|^committer:|"
+               "^branch nick:|^timestamp:|^message:' | sed s/'^  '/''/",
+        'hg': "hg log -r . --template='{desc}'",
+        'unknown': "echo 'no description information available'",
+    }
 
 
 class MetadataConfig(base.Config):
@@ -87,10 +121,10 @@ class MetadataConfig(base.Config):
             "clone": base.ScriptEntry(required=True),
             "update": base.ScriptEntry(required=True),
             "info": {
-                "revision": RevisionEntry(),
-                "author": AuthorEntry(),
-                "date": base.ScriptEntry(),
-                "description": base.ScriptEntry(),
+                "revision": VCSRevisionEntry(),
+                "author": VCSAuthorEntry(),
+                "date": VCSDateEntry(),
+                "description": VCSDescriptionEntry(),
                 "changelog": base.ScriptEntry(),
             }
         },

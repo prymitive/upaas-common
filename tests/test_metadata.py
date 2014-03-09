@@ -34,24 +34,46 @@ repository:
   info:
     revision: revision cmd
     author: author cmd
+    date: date cmd
+    description: description cmd
 '''
 
 
-def test_detect_revision():
+def test_revision_detect():
     meta = MetadataConfig.from_string(MetadataDetect)
     assert meta.repository.info.revision == ['git rev-parse HEAD']
 
 
-def test_manual_revision():
+def test_revision_command():
     meta = MetadataConfig.from_string(MetadataManual)
     assert meta.repository.info.revision == ['revision cmd']
 
 
-def test_detect_author():
+def test_author_detect():
     meta = MetadataConfig.from_string(MetadataDetect)
     assert meta.repository.info.author == ["git log -1 --pretty='%aN <%aE>'"]
 
 
-def test_manual_author():
+def test_author_command():
     meta = MetadataConfig.from_string(MetadataManual)
     assert meta.repository.info.author == ['author cmd']
+
+
+def test_date_detect():
+    meta = MetadataConfig.from_string(MetadataDetect)
+    assert meta.repository.info.date == ["git log -1 --pretty='%at'"]
+
+
+def test_date_command():
+    meta = MetadataConfig.from_string(MetadataManual)
+    assert meta.repository.info.date == ['date cmd']
+
+
+def test_description_detect():
+    meta = MetadataConfig.from_string(MetadataDetect)
+    assert meta.repository.info.description == ["git log -1 --pretty='%B'"]
+
+
+def test_description_command():
+    meta = MetadataConfig.from_string(MetadataManual)
+    assert meta.repository.info.description == ['description cmd']
