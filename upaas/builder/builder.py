@@ -505,12 +505,13 @@ class Builder(object):
                 if replace:
                     for (rold, rnew) in replace:
                         cmd = cmd.replace(rold, rnew)
+                env = self.metadata.repository.env.copy()
+                env['LANG'] = 'C.UTF-8'
+                env['LC_ALL'] = 'C.UTF-8'
                 try:
                     _, output = commands.execute(
-                        cmd, timeout=self.config.commands.timelimit,
-                        env=self.metadata.repository.env,
-                        output_loglevel=logging.INFO,
-                        strip_envs=True)
+                        cmd, timeout=self.config.commands.timelimit, env=env,
+                        output_loglevel=logging.INFO, strip_envs=True)
                 except commands.CommandTimeout:
                     log.error("%s command is taking too long, aborting" % name)
                 except commands.CommandFailed:
