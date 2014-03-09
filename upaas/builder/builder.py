@@ -13,6 +13,8 @@ import shutil
 import datetime
 import logging
 
+from timestring import Date
+
 from upaas import distro
 
 from upaas import commands
@@ -53,6 +55,9 @@ class BuildResult:
         self.distro_name = distro.distro_name()
         self.distro_version = distro.distro_version()
         self.distro_arch = distro.distro_arch()
+
+        # information about last commit in VCS (if available)
+        self.vcs_revision = {}
 
 
 class Builder(object):
@@ -345,11 +350,15 @@ class Builder(object):
         result.progress = 45
         yield result
 
+        result.vcs_revision = self.vcs_info(workdir, chroot_homedir)
+        result.progress = 46
+        yield result
+
         if not self.write_files(workdir, chroot_homedir):
             kill_and_remove_dir(directory)
             self.user_error("Creating files from metadata failed")
         log.info("Created all files from metadata")
-        result.progress = 48
+        result.progress = 49
         yield result
 
         if not self.run_actions(self.app_action_names, workdir,
@@ -476,6 +485,47 @@ class Builder(object):
                     log.error("Command failed")
                     return False
         return True
+
+    def vcs_info(self, workdir, homedir):
+        ret = {}
+        log.info("Extracting information about last commit")
+        with Chroot(workdir, workdir=homedir):
+            def vcs_cmd(name, cmd):
+                name = 'repository.revision.%s' % name
+                try:
+                    _, output = commands.execute(
+                        cmd, timeout=self.config.commands.timelimit,
+                        env=self.metadata.repository.env,
+                        output_loglevel=logging.INFO,
+                        strip_envs=True)
+                except commands.CommandTimeout:
+                    log.error("%s command is taking too long, aborting" % name)
+                except commands.CommandFailed:
+                    log.error("%s command failed" % name)
+                else:
+                    return '\n'.join(output)
+
+            ret = {
+                'id': vcs_cmd('id', self.metadata.repository.revision.id),
+                'author': vcs_cmd('author',
+                                  self.metadata.repository.revision.author),
+                'date': vcs_cmd('date',
+                                self.metadata.repository.revision.date),
+                'description': vcs_cmd(
+                    'description',
+                    self.metadata.repository.revision.description),
+                'changelog': vcs_cmd(
+                    'changelog', self.metadata.repository.revision.changelog),
+            }
+
+        if 'date' in ret:
+            try:
+                ret['date'] = Date(ret['date'])
+            except ValueError:
+                log.error("Can't convert '%s' to date" % ret['date'])
+                del ret['date']
+
+        return ret
 
     def update(self, workdir, homedir):
         log.info("Updating repository in '%s'" % homedir)

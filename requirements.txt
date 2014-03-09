@@ -4,3 +4,4 @@ tastypie-queryset-client==0.7.2
 requests==2.2.1
 pymongo==2.6.3
 -e git+https://github.com/kelleyk/py3k-netifaces.git#egg=netifaces
+timestring==1.6.0

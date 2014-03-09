@@ -46,7 +46,7 @@ class VCSScript(base.ScriptEntry):
     default = detect
 
 
-class VCSRevisionEntry(VCSScript):
+class VCSRevisionIDEntry(VCSScript):
 
     entry_name = 'repository.revision'
 
@@ -107,6 +107,19 @@ class VCSDescriptionEntry(VCSScript):
     }
 
 
+class VCSChangeLogEntry(VCSScript):
+
+    entry_name = 'repository.description'
+
+    commands = {
+        'git': 'git log --no-merges %old%..%new%',
+        'svn': 'svn log -r%old%:%new% --non-interactive --trust-server-cert',
+        'bzr': 'bzr log -r%old%..%new%',
+        'hg': 'hg log -r %old%:%new%',
+        'unknown': "echo 'no changelog information available'",
+    }
+
+
 class MetadataConfig(base.Config):
 
     schema = {
@@ -120,12 +133,12 @@ class MetadataConfig(base.Config):
             "env": base.DictEntry(value_type=unicode),
             "clone": base.ScriptEntry(required=True),
             "update": base.ScriptEntry(required=True),
-            "info": {
-                "revision": VCSRevisionEntry(),
+            "revision": {
+                "id": VCSRevisionIDEntry(),
                 "author": VCSAuthorEntry(),
                 "date": VCSDateEntry(),
                 "description": VCSDescriptionEntry(),
-                "changelog": base.ScriptEntry(),
+                "changelog": VCSChangeLogEntry(),
             }
         },
         "env": base.DictEntry(value_type=unicode),
