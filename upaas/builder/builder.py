@@ -517,7 +517,7 @@ class Builder(object):
                 except commands.CommandFailed:
                     log.error("%s command failed" % name)
                 else:
-                    return '\n'.join(output)
+                    return ''.join(output).rstrip('\n')
 
             ret = {
                 'id': vcs_cmd('id', self.metadata.repository.revision.id),
@@ -535,8 +535,8 @@ class Builder(object):
                     'changelog',
                     self.metadata.repository.revision.changelog,
                     replace=[
-                        ('%old%', self.current_revision),
-                        ('%new%', ret['id']),
+                        ('%old%', self.current_revision.rstrip('\n')),
+                        ('%new%', ret['id'].rstrip('\n')),
                     ])
 
         if 'date' in ret:

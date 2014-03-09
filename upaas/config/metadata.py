@@ -51,8 +51,8 @@ class VCSRevisionIDEntry(VCSLazyEntry):
     entry_name = 'repository.revision'
 
     commands = {
-        'git': 'git rev-parse HEAD',
-        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+        'git': 'git log -1 --format=%H',
+        'svn': "svn info --non-interactive --trust-server-cert "
                "| grep Revision | egrep -o '[0-9]+'",
         'bzr': 'bzr revno',
         'hg': 'hg id -i',
@@ -66,7 +66,7 @@ class VCSAuthorEntry(VCSLazyEntry):
 
     commands = {
         'git': "git log -1 --pretty='%aN <%aE>'",
-        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+        'svn': "svn info --non-interactive --trust-server-cert "
                "| grep 'Last Changed Author:' "
                "| sed s/'^Last Changed Author: '/''/",
         'bzr': "bzr log -l 1 | grep 'committer:' | sed s/'committer: '/''/",
@@ -81,7 +81,7 @@ class VCSDateEntry(VCSLazyEntry):
 
     commands = {
         'git': "git log -1 --pretty='%at'",
-        'svn': "svn info -r 'HEAD' --non-interactive --trust-server-cert "
+        'svn': "svn info --non-interactive --trust-server-cert "
                "| grep 'Last Changed Date:' "
                "| sed s/'^Last Changed Date: '/''/ "
                "| cut -d '(' -f 1",
@@ -97,7 +97,7 @@ class VCSDescriptionEntry(VCSLazyEntry):
 
     commands = {
         'git': "git log -1 --pretty='%B'",
-        'svn': "svn log -r COMMITTED --non-interactive --trust-server-cert "
+        'svn': "svn log -l 1 --non-interactive --trust-server-cert "
                "| egrep -v '^\-+$' "
                "| tail -n +3",
         'bzr': "bzr log -l 1 | egrep -v '^-+$|^revno:|^committer:|"
@@ -112,7 +112,7 @@ class VCSChangeLogEntry(VCSLazyEntry):
     entry_name = 'repository.description'
 
     commands = {
-        'git': 'git log --no-merges %old%..%new%',
+        'git': 'git log --no-merges --format=medium %old%..%new%',
         'svn': 'svn log -r%old%:%new% --non-interactive --trust-server-cert',
         'bzr': 'bzr log -r%old%..%new%',
         'hg': 'hg log -r %old%:%new%',
