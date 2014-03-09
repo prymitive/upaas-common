@@ -42,7 +42,7 @@ repository:
 
 def test_revision_detect():
     meta = MetadataConfig.from_string(MetadataDetect)
-    assert meta.repository.revision.id() == 'git rev-parse HEAD'
+    assert meta.repository.revision.id() == 'git log -1 --format=%H'
 
 
 def test_revision_command():
@@ -84,7 +84,7 @@ def test_description_command():
 def test_changelog_detect():
     meta = MetadataConfig.from_string(MetadataDetect)
     assert meta.repository.revision.changelog() == \
-        'git log --no-merges %old%..%new%'
+        'git log --no-merges --format=medium %old%..%new%'
 
 
 def test_changelog_command():
