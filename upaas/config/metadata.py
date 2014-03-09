@@ -17,7 +17,7 @@ from upaas.compat import unicode
 log = logging.getLogger(__name__)
 
 
-class VCSScript(base.StringEntry):
+class VCSLazyEntry(base.StringEntry):
 
     entry_name = None
     commands = {}
@@ -46,7 +46,7 @@ class VCSScript(base.StringEntry):
     default = detect
 
 
-class VCSRevisionIDEntry(VCSScript):
+class VCSRevisionIDEntry(VCSLazyEntry):
 
     entry_name = 'repository.revision'
 
@@ -60,7 +60,7 @@ class VCSRevisionIDEntry(VCSScript):
     }
 
 
-class VCSAuthorEntry(VCSScript):
+class VCSAuthorEntry(VCSLazyEntry):
 
     entry_name = 'repository.author'
 
@@ -75,7 +75,7 @@ class VCSAuthorEntry(VCSScript):
     }
 
 
-class VCSDateEntry(VCSScript):
+class VCSDateEntry(VCSLazyEntry):
 
     entry_name = 'repository.date'
 
@@ -91,7 +91,7 @@ class VCSDateEntry(VCSScript):
     }
 
 
-class VCSDescriptionEntry(VCSScript):
+class VCSDescriptionEntry(VCSLazyEntry):
 
     entry_name = 'repository.description'
 
@@ -107,7 +107,7 @@ class VCSDescriptionEntry(VCSScript):
     }
 
 
-class VCSChangeLogEntry(VCSScript):
+class VCSChangeLogEntry(VCSLazyEntry):
 
     entry_name = 'repository.description'
 

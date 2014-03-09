@@ -492,6 +492,8 @@ class Builder(object):
         with Chroot(workdir, workdir=homedir):
             def vcs_cmd(name, cmd):
                 name = 'repository.revision.%s' % name
+                if hasattr(cmd, '__call__'):
+                    cmd = cmd()
                 try:
                     _, output = commands.execute(
                         cmd, timeout=self.config.commands.timelimit,
@@ -520,7 +522,7 @@ class Builder(object):
 
         if 'date' in ret:
             try:
-                ret['date'] = Date(ret['date'])
+                ret['date'] = Date(ret['date']).date
             except ValueError:
                 log.error("Can't convert '%s' to date" % ret['date'])
                 del ret['date']

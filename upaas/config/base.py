@@ -328,10 +328,7 @@ class Config(object):
                 log.debug("Configuration entry %s is missing, using default"
                           " value: %s" % (self.child_name(name),
                                           entry_schema.default))
-                if hasattr(entry_schema.default, '__call__'):
-                    self.entries[name] = entry_schema.default()
-                else:
-                    self.entries[name] = entry_schema.default
+                self.entries[name] = entry_schema.default
 
 
 def load_config(cls, filename, directories=UPAAS_CONFIG_DIRS):
