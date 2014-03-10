@@ -31,7 +31,7 @@ def find_storage_handler(name, settings=None):
         raise ConfigurationError(msg)
     else:
         log.info("Loaded storage handler '%s', initializing with settings: "
-                 "%s" % (name, settings.keys()))
+                 "%s" % (name, (settings or {}).keys()))
         try:
             return storage_handler(settings)
         except ConfigurationError:
