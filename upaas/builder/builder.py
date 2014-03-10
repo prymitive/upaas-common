@@ -270,7 +270,8 @@ class Builder(object):
             log.info("Using forced interpreter version: "
                      "%s" % interpreter_version)
 
-        self.storage = find_storage_handler(self.config)
+        self.storage = find_storage_handler(self.config.storage.handler,
+                                            self.config.storage.settings)
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
                      "%s" % system_filename)
@@ -713,4 +714,5 @@ class OSBuilder(Builder):
         :param builder_config: Builder configuration.
         """
         self.config = builder_config
-        self.storage = find_storage_handler(self.config)
+        self.storage = find_storage_handler(self.config.storage.handler,
+                                            self.config.storage.settings)
