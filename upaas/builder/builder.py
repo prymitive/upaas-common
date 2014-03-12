@@ -280,6 +280,9 @@ class Builder(object):
                          "%s" % current_revision)
                 self.current_revision = current_revision
         else:
+            if system_filename:
+                log.warning("Requested base package file not found, using "
+                            "empty system image")
             self.envs['UPAAS_FRESH_PACKAGE'] = 'true'
             system_filename = None
             log.info("Starting package build using empty system image")
