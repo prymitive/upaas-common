@@ -521,7 +521,8 @@ class Builder(object):
                 except commands.CommandFailed:
                     log.error("%s command failed" % name)
                 else:
-                    return ''.join(output).rstrip('\n')
+                    return ''.encode('utf-8').join(output).rstrip(
+                        '\n'.encode('utf-8'))
 
             ret = {
                 'id': vcs_cmd('id', self.metadata.repository.revision.id),
