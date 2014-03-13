@@ -16,6 +16,7 @@ import pytest
 
 from upaas.storage.local import LocalStorage
 from upaas.storage.exceptions import FileNotFound
+from upaas.storage.utils import find_storage_handler
 from upaas.config.base import ConfigurationError
 
 
@@ -29,6 +30,11 @@ def storage(request):
     request.addfinalizer(cleanup)
 
     return storage
+
+
+def test_find_storage():
+    assert find_storage_handler(
+        'upaas.storage.local.LocalStorage') is not None
 
 
 def test_valid_settings(storage):
