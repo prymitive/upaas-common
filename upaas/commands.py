@@ -124,7 +124,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
     try:
         while True:
             retcode = p.poll()
-            line = p.stdout.readline()
+            line = p.stdout.readline().decode('utf-8')
             if line:
                 output.append(line)
                 log.log(output_loglevel, line.rstrip(os.linesep))
