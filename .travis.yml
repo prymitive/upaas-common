@@ -6,8 +6,8 @@ python:
   - "3.3"
 
 install:
-  - pip install -Ur requirements.txt --use-mirrors
-  - pip install -Ur requirements-test.txt --use-mirrors
+  - pip install -Ur requirements.txt
+  - pip install -Ur requirements-test.txt
 
 script:
   - coverage run --rcfile=.coveragerc `which py.test` -vs --pep8
