@@ -1,6 +1,6 @@
 pyyaml==3.10
 plumbum==1.4.1
-tastypie-queryset-client==0.7.2
+-e git+https://github.com/prymitive/tastypie-queryset-client-py3k.git#egg=tastypie-queryset-client
 requests==2.2.1
 pymongo==2.6.3
 -e git+https://github.com/kelleyk/py3k-netifaces.git#egg=netifaces
