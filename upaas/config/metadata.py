@@ -113,7 +113,7 @@ class VCSChangeLogEntry(VCSLazyEntry):
 
     commands = {
         'git': 'git log --no-merges --format=medium %old%..%new%',
-        'svn': 'svn log -r%old%:%new% --non-interactive --trust-server-cert',
+        'svn': 'svn log -r%new%:%old% --non-interactive --trust-server-cert',
         'bzr': 'bzr log -r%old%..%new%',
         'hg': 'hg log -r %old%:%new%',
         'unknown': "echo 'no changelog information available'",
