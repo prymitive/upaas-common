@@ -140,6 +140,9 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
         os.kill(p.pid, signal.SIGKILL)
         _cleanup(wd, original_env)
         raise CommandFailed(e)
+    except Exception:
+        signal.alarm(0)
+        raise
 
     if timeout:
         signal.alarm(0)
