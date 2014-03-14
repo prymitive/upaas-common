@@ -34,7 +34,7 @@ def storage(request):
 
 def test_find_storage():
     assert find_storage_handler(
-        'upaas.storage.local.LocalStorage') is not None
+        'upaas.storage.local.LocalStorage', settings={'dir': '/'}) is not None
 
 
 def test_valid_settings(storage):
