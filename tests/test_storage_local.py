@@ -37,6 +37,11 @@ def test_find_storage():
         'upaas.storage.local.LocalStorage', settings={'dir': '/'}) is not None
 
 
+def test_find_storage_invalid():
+    with pytest.raises(ConfigurationError):
+        find_storage_handler('upaas.storage.local.LocalStorage')
+
+
 def test_valid_settings(storage):
     assert storage.settings.dir is not None
 
