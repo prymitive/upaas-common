@@ -33,18 +33,31 @@ def version_tuple_to_string(version):
     return '.'.join(str(v) for v in version)
 
 
+def version_fuzzy_compare(v1, v2):
+    """
+    Fuzzy version matching, checks if given 2 version strings are equal.
+    It compares most major parts of each version.
+    Example:
+    5 == 5.4 => true
+    5.3 == 5.4 => false
+    5.1.4 == 5.1 => true
+    """
+    v1t = version_to_tuple(v1)
+    v2t = version_to_tuple(v2)
+    match_items = min(len(v1t), len(v2t))
+    return v1t[0:match_items] == v2t[0:match_items]
+
+
 def supported_versions(config, metadata):
     """
     Return list of versions from metadata that are supported localy.
     """
     valid_versions = {}
     for version in metadata.interpreter.versions:
-        try:
-            _ = config.interpreters[metadata.interpreter.type][version]
-        except KeyError:
-            pass
-        else:
-            valid_versions[version] = version_to_tuple(version)
+        for iversion in config.interpreters[metadata.interpreter.type]:
+            if iversion.lower() != 'any':
+                if version_fuzzy_compare(version, iversion):
+                    valid_versions[iversion] = version_to_tuple(iversion)
     return valid_versions
 
 
