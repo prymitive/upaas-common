@@ -18,11 +18,11 @@ log = logging.getLogger(__name__)
 
 
 def bytes_to_human(num):
-    for x in ['bytes', 'KB', 'MB', 'GB']:
+    for x in ['bytes', 'KB', 'MB', 'GB', 'TB', 'PB']:
         if 1024.0 > num > -1024.0:
-            return "%3.1f%s" % (num, x)
+            return "%3.1f %s" % (num, x)
         num /= 1024.0
-    return "%3.1f%s" % (num, 'TB')
+    return "%3.1f %s" % (num, 'EB')
 
 
 def version_to_tuple(v):

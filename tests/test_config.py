@@ -23,7 +23,17 @@ class BasicConfig(base.Config):
                 "required_int": base.IntegerEntry(required=True)
             },
             "optional_int": base.IntegerEntry(),
+        },
+        "chained": {
+            "included": base.BooleanEntry()
         }
+    }
+
+
+class InvalidConfig(base.Config):
+    schema = {
+        "valid": base.IntegerEntry(),
+        "invalid": int(),
     }
 
 
@@ -95,6 +105,7 @@ def test_required_entries_from_file():
     assert cfg.folder1.subfolder1.required_int == 123
     with pytest.raises(AttributeError):
         print((cfg.folder1.optional_int))
+    assert cfg.chained.included is True
 
 
 def test_loading_from_missing_file():
@@ -111,6 +122,9 @@ def test_loading_from_string():
 
 def test_dump():
     options = {
+        "chained": {
+            "included": True
+        },
         "required_string": "abc",
         "folder1": {
             "subfolder1": {
@@ -192,6 +206,18 @@ def test_dict_entry_no_type():
     assert cfg.mydict == {}
 
 
+def test_init_config_invalid_content():
+    with pytest.raises(base.ConfigurationError):
+        BasicConfig(123)
+
+
+def test_init_config_invalid_schema():
+    cfg = InvalidConfig({"valid": 1, "invalid": 2})
+    assert cfg.valid == 1
+    with pytest.raises(AttributeError):
+        cfg.invalid == 2
+
+
 def test_load_config_using_path():
     cfg = base.load_config(BasicConfig, 'test_config.yml',
                            directories=[os.path.dirname(__file__)])
@@ -214,6 +240,12 @@ def test_load_config_invalid():
     assert cfg is None
 
 
+def test_load_config_missing():
+    cfg = base.load_config(BasicConfig, 'non existing file',
+                           directories=['/non/existing/dir'])
+    assert cfg is None
+
+
 def test_bool_entry():
     cfg = BoolConfig({"mybool_false": False, "mybool_true": True})
     assert cfg.mybool_false is False
@@ -221,6 +253,13 @@ def test_bool_entry():
 
     with pytest.raises(AttributeError):
         _ = cfg.mybool_missing
+
+
+def test_bool_entry_invalid():
+    with pytest.raises(base.ConfigurationError):
+        BoolConfig({"mybool_false": 1})
+    with pytest.raises(base.ConfigurationError):
+        BoolConfig({"mybool_false": 'a'})
 
 
 def test_integer_invalid_schema():
