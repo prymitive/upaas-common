@@ -626,10 +626,6 @@ class Builder(object):
         """
         Bootstrap base OS image.
         """
-        def _cleanup(directory):
-            log.info("Removing directory '%s'" % directory)
-            shutil.rmtree(directory)
-
         log.info("Bootstrapping new OS image")
 
         # directory is encoded into string to prevent unicode errors
@@ -646,11 +642,11 @@ class Builder(object):
                                  strip_envs=True)
             except commands.CommandTimeout as e:
                 log.error("Bootstrap was taking too long and it was killed")
-                _cleanup(directory)
+                kill_and_remove_dir(directory)
                 raise exceptions.OSBootstrapError(e)
             except commands.CommandFailed as e:
                 log.error("Bootstrap command failed")
-                _cleanup(directory)
+                kill_and_remove_dir(directory)
                 raise exceptions.OSBootstrapError(e)
         log.info("All commands completed, installing packages")
 
@@ -660,7 +656,7 @@ class Builder(object):
         archive_path = os.path.join(directory, "image.tar.gz")
         if not tar.pack_tar(directory, archive_path,
                             timeout=self.config.bootstrap.timelimit):
-            _cleanup(directory)
+            kill_and_remove_dir(directory)
             raise exceptions.OSBootstrapError("Tar error")
         else:
             log.info("Image packed, uploading")
@@ -672,7 +668,7 @@ class Builder(object):
             raise
 
         log.info("Image uploaded")
-        _cleanup(directory)
+        kill_and_remove_dir(directory)
         log.info("All done")
 
     def write_files(self, workdir, chroot_homedir):
