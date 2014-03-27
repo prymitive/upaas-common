@@ -1,4 +1,4 @@
-pyyaml==3.10
+pyyaml==3.11
 plumbum==1.4.1
 tastypie-queryset-client-p3k==0.7.2
 requests==2.2.1

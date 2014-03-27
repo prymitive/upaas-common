@@ -11,7 +11,7 @@ Architecture: all
 Depends: ${misc:Depends}, ${python:Depends},
  python-plumbum (>= 1.4.1),
  python-tastypie-queryset-client (>= 0.7.2),
- python-yaml (>= 3.10),
+ python-yaml (>= 3.11),
  python-requests (>= 2.2.1),
  python-netifaces (>= 0.8),
  python-pymongo (>= 2.6.3),
