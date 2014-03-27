@@ -62,7 +62,7 @@ class BuildResult:
 
 class Builder(object):
 
-    #TODO stage decorators
+    # TODO stage decorators
     # @stage('action_system', 95%)
     # time()
 
@@ -347,7 +347,7 @@ class Builder(object):
         result.progress = 40
         yield result
 
-        #TODO if building fails up to this point, then we can try retry it
+        # TODO if building fails up to this point, then we can try retry it
         # on another builder (for a limited number of times)
 
         if system_filename:

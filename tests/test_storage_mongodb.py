@@ -96,5 +96,5 @@ def test_size_not_empty(storage, empty_file):
 def test_mtime(storage, empty_file):
     storage.put(empty_file, "mtime.check")
     assert isinstance(storage.mtime("mtime.check"), datetime.datetime)
-    #FIXME basic check to verify if timestamp is from the past
+    # FIXME basic check to verify if timestamp is from the past
     assert storage.mtime("mtime.check") < datetime.datetime.now()

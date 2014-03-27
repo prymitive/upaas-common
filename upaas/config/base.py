@@ -64,7 +64,7 @@ class ConfigEntry(object):
 
     def __init__(self, required=False, default=None):
         self.required = required
-        if not default is None:
+        if default is not None:
             self.default = default
 
     @staticmethod
