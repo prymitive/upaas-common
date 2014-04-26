@@ -240,7 +240,7 @@ class Builder(object):
                     ret.add(pkg)
                     log.debug("Will install package '%s' from metadata for "
                               "distribution %s" % (pkg, distro.distro_name()))
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
             try:
                 for pkg in meta.os[distro.distro_name()][
@@ -250,7 +250,7 @@ class Builder(object):
                               "distribution %s, version "
                               "%s" % (pkg, distro.distro_name(),
                                       distro.distro_version()))
-            except KeyError:
+            except (KeyError, TypeError):
                 pass
         return ret
 
@@ -548,7 +548,7 @@ class Builder(object):
             try:
                 ret['date'] = Date(ret['date']).date
             except ValueError:
-                log.error("Can't convert '%s' to date" % ret['date'])
+                log.warning("Can't convert '%s' to date" % ret['date'])
                 del ret['date']
 
         return ret
