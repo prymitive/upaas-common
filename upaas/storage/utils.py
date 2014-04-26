@@ -32,8 +32,8 @@ def find_storage_handler(name, settings=None):
     """
     storage_module = ".".join(name.split(".")[0:len(name.split(".")) - 1])
     storage_class = name.split(".")[len(name.split(".")) - 1]
-    log.info("Trying to import '%s' from '%s'" % (storage_class,
-                                                  storage_module))
+    log.debug("Trying to import '%s' from '%s'" % (storage_class,
+                                                   storage_module))
     try:
         storage_handler = import_handler(storage_module, storage_class)
     except ImportError:
@@ -41,8 +41,8 @@ def find_storage_handler(name, settings=None):
         log.error(msg)
         raise ConfigurationError(msg)
     else:
-        log.info("Loaded storage handler '%s', initializing with settings: "
-                 "%s" % (name, (settings or {}).keys()))
+        log.debug("Loaded storage handler '%s', initializing with settings: "
+                  "%s" % (name, (settings or {}).keys()))
         try:
             return storage_handler(settings)
         except ConfigurationError:
