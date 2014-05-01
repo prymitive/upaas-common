@@ -431,8 +431,10 @@ class Builder(object):
         yield result
 
     def unpack_os(self, directory, workdir, system_filename=None):
+        empty_os_image = False
         if not system_filename:
             system_filename = distro.distro_image_filename()
+            empty_os_image = True
 
         os_image_path = os.path.join(directory, "os.image")
         log.info("Fetching OS image '%s'" % system_filename)
@@ -455,6 +457,16 @@ class Builder(object):
                                  output_loglevel=logging.INFO)
         except Exception as e:
             log.error("Broken OS image! /bin/true failed: %s" % e)
+            if empty_os_image:
+                try:
+                    self.storage.delete(system_filename)
+                except StorageError as e:
+                    log.error("Storage error while deleting OS image: %s" % e)
+                else:
+                    log.info("Deleted broken OS image from storage")
+                    self.bootstrap_os()
+                    self.unpack_os(directory, workdir,
+                                   system_filename=system_filename)
             return False
         else:
             return True
