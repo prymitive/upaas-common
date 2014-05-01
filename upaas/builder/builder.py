@@ -465,8 +465,8 @@ class Builder(object):
                 else:
                     log.info("Deleted broken OS image from storage")
                     self.bootstrap_os()
-                    self.unpack_os(directory, workdir,
-                                   system_filename=system_filename)
+                    return self.unpack_os(directory, workdir,
+                                          system_filename=system_filename)
             return False
         else:
             return True
