@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 
 import os
 import shutil
+import re
 import logging
 
 from upaas import commands
@@ -93,3 +94,17 @@ def umount_filesystems(workdir, timeout=60):
     for mount in mounts:
         log.info("Found mounted filesystem at '%s', unmounting" % mount)
         commands.execute("umount %s" % mount, timeout=timeout)
+
+
+def backend_total_memory():
+    """
+    Local backend physical memory size in bytes
+    """
+    with open('/proc/meminfo') as meminfo:
+        matched = re.search(r'^MemTotal:\s+(\d+)', meminfo.read())
+        if matched:
+            try:
+                return int(matched.groups()[0]) * 1024
+            except:
+                return 0
+    return 0

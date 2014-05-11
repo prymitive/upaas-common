@@ -39,3 +39,7 @@ def test_version_tuple_to_string():
     assert utils.version_tuple_to_string((1,)) == '1'
     assert utils.version_tuple_to_string((1, 9)) == '1.9'
     assert utils.version_tuple_to_string((1, 4, 5)) == '1.4.5'
+
+
+def test_backend_total_memory():
+    assert utils.backend_total_memory() > 32 * 1024 * 1024
