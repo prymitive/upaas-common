@@ -1,5 +1,5 @@
 pyyaml==3.11
-plumbum==1.4.1
+plumbum==1.4.2
 tastypie-queryset-client-p3k==0.7.2
 requests==2.2.1
 pymongo==2.7
