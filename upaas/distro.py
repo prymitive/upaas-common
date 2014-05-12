@@ -28,5 +28,6 @@ def distro_arch():
 
 def distro_image_filename():
     # FIXME tar.gz is hardcoded?
-    return "%s-%s-%s.tar.gz" % (distro_name(), distro_version(),
-                                distro_arch()).replace('/', '-')
+    return "%s-%s-%s.tar.gz".replace('/', '-') % (distro_name(),
+                                                  distro_version(),
+                                                  distro_arch())
