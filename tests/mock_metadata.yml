@@ -1,0 +1,26 @@
+os:
+  Debian: &debian
+    packages:
+      - fake-pkg
+  Ubuntu: *debian
+
+
+interpreter:
+  type: ruby
+  versions:
+    - 1.8.7
+
+
+repository:
+  clone: echo "cloning repository to %destination%"
+  update: echo "repository update command"
+
+
+actions:
+  setup:
+    main: echo "metadata/actions/setup/main"
+    after: echo "metadata/actions/setup/after"
+
+
+env:
+  REDMINE_LANG: en

@@ -43,8 +43,6 @@ class BuildResult:
         # selected interpreter version
         self.interpreter_version = None
 
-        # class of the storage this package was uploaded to
-        self.storage = None
         # package filename
         self.filename = None
         # package checksum
@@ -425,7 +423,6 @@ class Builder(object):
         kill_and_remove_dir(directory)
 
         result.progress = 100
-        result.storage = self.storage.__class__.__name__
         result.filename = checksum
         result.checksum = checksum
         yield result
