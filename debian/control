@@ -12,7 +12,7 @@ Depends: ${misc:Depends}, ${python:Depends},
  python-plumbum (>= 1.4.2),
  python-tastypie-queryset-client (>= 0.7.2),
  python-yaml (>= 3.11),
- python-requests (>= 2.2.1),
+ python-requests (>= 2.3.0),
  python-netifaces (>= 0.8),
  python-pymongo (>= 2.7),
  python-timestring (>= 1.6.0)
