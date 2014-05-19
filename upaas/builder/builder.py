@@ -9,7 +9,6 @@ from __future__ import unicode_literals
 
 import os
 import tempfile
-import shutil
 import datetime
 import logging
 
@@ -307,7 +306,7 @@ class Builder(object):
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
                                      prefix="upaas_package_").encode("utf-8")
-        workdir = os.path.join(directory, "workdir")
+        workdir = os.path.join(directory.decode('utf-8'), "workdir")
         chroot_homedir = self.config.apps.home
         os.mkdir(workdir, 0o755)
         log.info("Working directory created at '%s'" % workdir)
@@ -644,7 +643,7 @@ class Builder(object):
                   "'%s'" % directory)
 
         for cmd in self.config.bootstrap.commands:
-            cmd = cmd.replace("%workdir%", directory)
+            cmd = cmd.replace("%workdir%", directory.decode('utf-8'))
             try:
                 commands.execute(cmd, timeout=self.config.bootstrap.timelimit,
                                  cwd=directory, env=self.config.bootstrap.env,
