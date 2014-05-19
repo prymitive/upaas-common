@@ -305,8 +305,8 @@ class Builder(object):
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
-                                     prefix="upaas_package_").encode("utf-8")
-        workdir = os.path.join(directory.decode('utf-8'), "workdir")
+                                     prefix="upaas_package_")
+        workdir = os.path.join(directory, "workdir")
         chroot_homedir = self.config.apps.home
         os.mkdir(workdir, 0o755)
         log.info("Working directory created at '%s'" % workdir)
@@ -638,12 +638,12 @@ class Builder(object):
 
         # directory is encoded into string to prevent unicode errors
         directory = tempfile.mkdtemp(dir=self.config.paths.workdir,
-                                     prefix="upaas_bootstrap_").encode("utf-8")
+                                     prefix="upaas_bootstrap_")
         log.debug("Created temporary directory for bootstrap at "
                   "'%s'" % directory)
 
         for cmd in self.config.bootstrap.commands:
-            cmd = cmd.replace("%workdir%", directory.decode('utf-8'))
+            cmd = cmd.replace("%workdir%", directory)
             try:
                 commands.execute(cmd, timeout=self.config.bootstrap.timelimit,
                                  cwd=directory, env=self.config.bootstrap.env,
@@ -661,7 +661,7 @@ class Builder(object):
         self.install_packages(directory, self.config.bootstrap.packages)
         log.info("Bootstrap done, packing image")
 
-        archive_path = os.path.join(directory.decode('utf-8'), "image.tar.gz")
+        archive_path = os.path.join(directory, "image.tar.gz")
         if not tar.pack_tar(directory, archive_path,
                             timeout=self.config.bootstrap.timelimit):
             kill_and_remove_dir(directory)
