@@ -661,7 +661,7 @@ class Builder(object):
         self.install_packages(directory, self.config.bootstrap.packages)
         log.info("Bootstrap done, packing image")
 
-        archive_path = os.path.join(directory, "image.tar.gz")
+        archive_path = os.path.join(directory.decode('utf-8'), "image.tar.gz")
         if not tar.pack_tar(directory, archive_path,
                             timeout=self.config.bootstrap.timelimit):
             kill_and_remove_dir(directory)
