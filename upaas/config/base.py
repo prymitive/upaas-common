@@ -81,6 +81,14 @@ class ConfigEntry(object):
     def clean(self, value):
         """
         Cleanup entry value if needed, returned value will be new entry value.
+        Called before validate.
+        """
+        return value
+
+    def clean_late(self, value):
+        """
+        Cleanup entry value if needed, returned value will be new entry value.
+        Called after validate.
         """
         return value
 
@@ -191,6 +199,51 @@ class ScriptEntry(ConfigEntry):
         if isinstance(value, unicode):
             return [value]
         return value
+
+
+class ConfigListEntry(ConfigEntry):
+
+    default = []
+
+    def __init__(self, config_class, **kwargs):
+        self.config_class = config_class
+        self.parsed = []
+        super(ConfigListEntry, self).__init__(**kwargs)
+
+    def validate(self, value):
+        if value is None:
+            return
+        if not isinstance(value, list):
+            self.fail("Value must be list, %s "
+                      "given" % value.__class__.__name__)
+        for elem in value:
+            if value not in self.parsed:
+                self.parsed.append(self.config_class(elem))
+
+    def clean_late(self, value):
+        return self.parsed
+
+
+class ConfigDictEntry(ConfigEntry):
+
+    default = {}
+
+    def __init__(self, config_class, **kwargs):
+        self.config_class = config_class
+        self.parsed = {}
+        super(ConfigDictEntry, self).__init__(**kwargs)
+
+    def validate(self, value):
+        if value is None:
+            return
+        if not isinstance(value, dict):
+            self.fail("Value must be dict, %s "
+                      "given" % value.__class__.__name__)
+        for name, elem in value.items():
+            self.parsed[name] = self.config_class(elem)
+
+    def clean_late(self, value):
+        return self.parsed
 
 
 class Config(object):
@@ -320,6 +373,7 @@ class Config(object):
             self.fail("Configuration entry %s is invalid: %s" % (
                 self.child_name(name), e))
         else:
+            value = entry_schema.clean_late(value)
             if value is not None:
                 self.entries[name] = value
                 log.debug("Configuration entry %s with value "

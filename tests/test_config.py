@@ -78,6 +78,30 @@ class IntConfig(base.Config):
     }
 
 
+class NestedListBasicConfig(base.Config):
+    schema = {
+        "subconfig": base.ConfigListEntry(BasicConfig)
+    }
+
+
+class NestedListBoolConfig(base.Config):
+    schema = {
+        "subconfig": base.ConfigListEntry(BoolConfig)
+    }
+
+
+class NestedDictBasicConfig(base.Config):
+    schema = {
+        "subconfig": base.ConfigDictEntry(BasicConfig)
+    }
+
+
+class NestedDictBoolConfig(base.Config):
+    schema = {
+        "subconfig": base.ConfigDictEntry(BoolConfig)
+    }
+
+
 def test_empty():
     with pytest.raises(base.ConfigurationError):
         BasicConfig({})
@@ -321,3 +345,57 @@ def test_integer_single_value_invalid():
         _ = IntConfig({"int_with_single_value": 4})
     with pytest.raises(base.ConfigurationError):
         _ = IntConfig({"int_with_single_value": 6})
+
+
+def test_nested_list_config_valid():
+    options = {
+        "required_string": "abc",
+        "folder1": {
+            "subfolder1": {
+                "required_int": 123
+            }
+        }
+    }
+    cfg = NestedListBasicConfig({"subconfig": [options, options, options]})
+    for i in range(3):
+        assert cfg.subconfig[i].required_string == "abc"
+        assert cfg.subconfig[i].folder1.subfolder1.required_int == 123
+        with pytest.raises(AttributeError):
+            print((cfg.subconfig[i].folder1.optional_int))
+
+
+def test_nested_list_config_type_invalid():
+    with pytest.raises(base.ConfigurationError):
+        NestedListBoolConfig({"subconfig": {}})
+
+
+def test_nested_list_config_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        NestedListBoolConfig({"subconfig": [{"mybool_false": 1}]})
+
+
+def test_nested_dict_config_valid():
+    options = {
+        "required_string": "abc",
+        "folder1": {
+            "subfolder1": {
+                "required_int": 123
+            }
+        }
+    }
+    cfg = NestedDictBasicConfig({"subconfig": {'a': options, 'b': options}})
+    for name in ['a', 'b']:
+        assert cfg.subconfig[name].required_string == "abc"
+        assert cfg.subconfig[name].folder1.subfolder1.required_int == 123
+        with pytest.raises(AttributeError):
+            print((cfg.subconfig[name].folder1.optional_int))
+
+
+def test_nested_dict_config_type_invalid():
+    with pytest.raises(base.ConfigurationError):
+        NestedDictBoolConfig({"subconfig": []})
+
+
+def test_nested_dict_config_value_invalid():
+    with pytest.raises(base.ConfigurationError):
+        NestedDictBoolConfig({"subconfig": {'a': {"mybool_false": 1}}})
