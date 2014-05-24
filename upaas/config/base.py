@@ -335,7 +335,9 @@ class Config(object):
         raise AttributeError("%s not found" % item)
 
     def __getitem__(self, item):
-        return self.__getattr__(item)
+        if item in self.entries:
+            return self.entries[item]
+        raise KeyError("%s not found" % item)
 
     def child_name(self, key):
         return '.'.join([_f for _f in [self.name, key] if _f])

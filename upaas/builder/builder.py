@@ -177,9 +177,8 @@ class Builder(object):
             value = self.config.interpreters["env"]
             if value:
                 ret.update(value)
-                log.info("Got env variables for all interpreters: %s" % (
-                    ", ".join(["%s=%s" % (k, v) for k, v in list(
-                        value.items())])))
+                log.info("Environment variables for all interpreters: %s" % (
+                    ", ".join(["%s=%s" % (k, v) for k, v in value.items()])))
         except KeyError:
             pass
         for version in ["any"] + [self.interpreter_version]:
@@ -191,15 +190,14 @@ class Builder(object):
             except KeyError:
                 pass
             else:
-                log.info("Got env variables from %s/%s: %s" % (
+                log.info("Environment variables from %s/%s: %s" % (
                     meta.interpreter.type, version,
-                    ", ".join(["%s=%s" % (k, v) for k, v in list(
-                        value.items())])))
-                if meta.get("env"):
-                    ret.update(meta.env)
-                    log.info("Got env variables from app meta: " +
-                             ", ".join(["%s=%s" % (k, v)
-                                       for k, v in list(value.items())]))
+                    ", ".join(["%s=%s" % (k, v) for k, v in value.items()])))
+        if meta.get("env"):
+            ret.update(meta.env)
+            log.info("Environment variables from app meta: " +
+                     ", ".join(
+                         ["%s=%s" % (k, v) for k, v in meta.env.items()]))
 
         if ret:
             log.info("Final env variables:")
