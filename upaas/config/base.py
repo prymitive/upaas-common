@@ -177,7 +177,7 @@ class FSPathEntry(ConfigEntry):
         super(FSPathEntry, self).__init__(**kwargs)
 
     def validate(self, value):
-        if self.must_exist and not os.path.exists(value):
+        if value and self.must_exist and not os.path.exists(value):
             self.fail("Required path '%s' does not exits" % value)
 
 
