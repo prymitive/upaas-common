@@ -218,7 +218,7 @@ class ConfigListEntry(ConfigEntry):
                       "given" % value.__class__.__name__)
         for elem in value:
             if value not in self.parsed:
-                self.parsed.append(self.config_class(elem))
+                self.parsed.append(self.config_class(elem).dump())
 
     def clean_late(self, value):
         return self.parsed
@@ -240,7 +240,7 @@ class ConfigDictEntry(ConfigEntry):
             self.fail("Value must be dict, %s "
                       "given" % value.__class__.__name__)
         for name, elem in value.items():
-            self.parsed[name] = self.config_class(elem)
+            self.parsed[name] = self.config_class(elem).dump()
 
     def clean_late(self, value):
         return self.parsed

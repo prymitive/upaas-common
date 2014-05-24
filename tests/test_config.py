@@ -364,6 +364,22 @@ def test_nested_list_config_valid():
             print((cfg.subconfig[i].folder1.optional_int))
 
 
+def test_nested_list_config_dump():
+    options = {
+        "required_string": "abc",
+        "folder1": {
+            "subfolder1": {
+                "required_int": 123
+            }
+        }
+    }
+    cfg = NestedListBasicConfig({"subconfig": [options, options, options]})
+    dump = cfg.dump()
+    assert isinstance(dump['subconfig'], list)
+    assert len(dump['subconfig']) == 3
+    assert dump['subconfig'][0]['required_string'] == 'abc'
+
+
 def test_nested_list_config_empty():
     cfg = NestedListBoolConfig({"subconfig": []})
     assert cfg.subconfig == []
