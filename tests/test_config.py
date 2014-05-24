@@ -348,20 +348,39 @@ def test_integer_single_value_invalid():
 
 
 def test_nested_list_config_valid():
-    options = {
-        "required_string": "abc",
-        "folder1": {
-            "subfolder1": {
-                "required_int": 123
+    options = [
+        {
+            "required_string": "a1",
+            "folder1": {
+                "subfolder1": {
+                    "required_int": 123
+                }
             }
-        }
-    }
-    cfg = NestedListBasicConfig({"subconfig": [options, options, options]})
-    for i in range(3):
-        assert cfg.subconfig[i].required_string == "abc"
-        assert cfg.subconfig[i].folder1.subfolder1.required_int == 123
-        with pytest.raises(AttributeError):
-            print((cfg.subconfig[i].folder1.optional_int))
+        },
+        {
+            "required_string": "b2",
+            "folder1": {
+                "subfolder1": {
+                    "required_int": 456
+                }
+            }
+        },
+        {
+            "required_string": "c3",
+            "folder1": {
+                "subfolder1": {
+                    "required_int": 789
+                }
+            }
+        },
+    ]
+    cfg = NestedListBasicConfig({"subconfig": options})
+    assert cfg.subconfig[0].required_string == "a1"
+    assert cfg.subconfig[0].folder1.subfolder1.required_int == 123
+    assert cfg.subconfig[1].required_string == "b2"
+    assert cfg.subconfig[1].folder1.subfolder1.required_int == 456
+    assert cfg.subconfig[2].required_string == "c3"
+    assert cfg.subconfig[2].folder1.subfolder1.required_int == 789
 
 
 def test_nested_list_config_dump():
@@ -397,19 +416,28 @@ def test_nested_list_config_value_invalid():
 
 def test_nested_dict_config_valid():
     options = {
-        "required_string": "abc",
-        "folder1": {
-            "subfolder1": {
-                "required_int": 123
+        "a": {
+            "required_string": "abc",
+            "folder1": {
+                "subfolder1": {
+                    "required_int": 123
+                }
+            }
+        },
+        "b": {
+            "required_string": "def",
+            "folder1": {
+                "subfolder1": {
+                    "required_int": 456
+                }
             }
         }
     }
-    cfg = NestedDictBasicConfig({"subconfig": {'a': options, 'b': options}})
-    for name in ['a', 'b']:
-        assert cfg.subconfig[name].required_string == "abc"
-        assert cfg.subconfig[name].folder1.subfolder1.required_int == 123
-        with pytest.raises(AttributeError):
-            print((cfg.subconfig[name].folder1.optional_int))
+    cfg = NestedDictBasicConfig({"subconfig": options})
+    assert cfg.subconfig['a'].required_string == "abc"
+    assert cfg.subconfig['a'].folder1.subfolder1.required_int == 123
+    assert cfg.subconfig['b'].required_string == "def"
+    assert cfg.subconfig['b'].folder1.subfolder1.required_int == 456
 
 
 def test_nested_dict_config_empty():

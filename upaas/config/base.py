@@ -93,6 +93,11 @@ class ConfigEntry(object):
         return value
 
 
+class NestedConfigEntry(ConfigEntry):
+
+    pass
+
+
 class WildcardEntry(ConfigEntry):
     pass
 
@@ -201,7 +206,7 @@ class ScriptEntry(ConfigEntry):
         return value
 
 
-class ConfigListEntry(ConfigEntry):
+class ConfigListEntry(NestedConfigEntry):
 
     default = []
 
@@ -217,14 +222,15 @@ class ConfigListEntry(ConfigEntry):
             self.fail("Value must be list, %s "
                       "given" % value.__class__.__name__)
         for elem in value:
-            if value not in self.parsed:
-                self.parsed.append(self.config_class(elem).dump())
+            self.parsed.append(self.config_class(elem))
 
     def clean_late(self, value):
-        return self.parsed
+        ret = self.parsed
+        self.parsed = []
+        return ret
 
 
-class ConfigDictEntry(ConfigEntry):
+class ConfigDictEntry(NestedConfigEntry):
 
     default = {}
 
@@ -240,10 +246,12 @@ class ConfigDictEntry(ConfigEntry):
             self.fail("Value must be dict, %s "
                       "given" % value.__class__.__name__)
         for name, elem in value.items():
-            self.parsed[name] = self.config_class(elem).dump()
+            self.parsed[name] = self.config_class(elem)
 
     def clean_late(self, value):
-        return self.parsed
+        ret = self.parsed
+        self.parsed = {}
+        return ret
 
 
 class Config(object):
@@ -297,7 +305,7 @@ class Config(object):
 
         if not isinstance(content, (dict, type(None))):
             self.fail("Invalid configuration, expected dict but got "
-                      "%s" % content.__class__.__name__)
+                      "%s: %s" % (content.__class__.__name__, content))
 
         self.content = content
         self.entries = {}
@@ -324,6 +332,9 @@ class Config(object):
             return self.entries[item]
         raise AttributeError("%s not found" % item)
 
+    def __getitem__(self, item):
+        return self.__getattr__(item)
+
     def child_name(self, key):
         return '.'.join([_f for _f in [self.name, key] if _f])
 
@@ -345,7 +356,15 @@ class Config(object):
         ret = {}
         ret.update(self.entries)
         for key in self.children:
-            ret[key] = getattr(self, key).dump()
+            cfg = getattr(self, key)
+            if isinstance(cfg, list):
+                ret[key] = [c.dump() for c in cfg]
+            elif isinstance(cfg, dict):
+                ret[key] = {}
+                for k, v in cfg.items():
+                    ret[key][k] = v.dump()
+            else:
+                ret[key] = cfg.dump()
         return ret
 
     def dump_string(self):
@@ -383,6 +402,8 @@ class Config(object):
                           " value: %s" % (self.child_name(name),
                                           entry_schema.default))
                 self.entries[name] = entry_schema.default
+            if isinstance(entry_schema, NestedConfigEntry):
+                self.children.add(name)
 
 
 def load_config(cls, filename, directories=UPAAS_CONFIG_DIRS):
