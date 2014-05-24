@@ -364,6 +364,11 @@ def test_nested_list_config_valid():
             print((cfg.subconfig[i].folder1.optional_int))
 
 
+def test_nested_list_config_empty():
+    cfg = NestedListBoolConfig({"subconfig": []})
+    assert cfg.subconfig == []
+
+
 def test_nested_list_config_type_invalid():
     with pytest.raises(base.ConfigurationError):
         NestedListBoolConfig({"subconfig": {}})
@@ -389,6 +394,11 @@ def test_nested_dict_config_valid():
         assert cfg.subconfig[name].folder1.subfolder1.required_int == 123
         with pytest.raises(AttributeError):
             print((cfg.subconfig[name].folder1.optional_int))
+
+
+def test_nested_dict_config_empty():
+    cfg = NestedDictBoolConfig({"subconfig": {}})
+    assert cfg.subconfig == {}
 
 
 def test_nested_dict_config_type_invalid():
