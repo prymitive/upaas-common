@@ -316,9 +316,11 @@ class Config(object):
                     and value.required:
                 self.fail("Empty configuration")
             if isinstance(value, dict):
-                setattr(self, key, Config(content.get(key, {}), _schema=value,
-                                          name=self.child_name(key)))
+                cfg = Config(content.get(key, {}), _schema=value,
+                             name=self.child_name(key))
+                setattr(self, key, cfg)
                 self.children.add(key)
+                self.entries[key] = cfg
             elif isinstance(value, WildcardEntry):
                 self.entries[key] = (content or {}).get(key)
             elif isinstance(value, ConfigEntry):
