@@ -14,7 +14,7 @@ class BaseStorage(object):
 
     def __init__(self, settings):
         self.settings = base.Config(settings,
-                                    _schema=self.configuration_schema)
+                                    schema=self.configuration_schema)
 
     def get(self, remote_path, local_path):
         """

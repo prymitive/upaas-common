@@ -294,9 +294,9 @@ class Config(object):
     def from_string(cls, string):
         return cls(yaml.safe_load(string))
 
-    def __init__(self, content, _schema=None, name=''):
-        if _schema:
-            self.schema = _schema
+    def __init__(self, content, schema=None, name=''):
+        if schema:
+            self.schema = schema
         self.name = name
 
         log.debug("Parsing key '%s', settings %s, schema %s" % (self.name,
@@ -316,7 +316,7 @@ class Config(object):
                     and value.required:
                 self.fail("Empty configuration")
             if isinstance(value, dict):
-                cfg = Config(content.get(key, {}), _schema=value,
+                cfg = Config(content.get(key, {}), schema=value,
                              name=self.child_name(key))
                 setattr(self, key, cfg)
                 self.children.add(key)

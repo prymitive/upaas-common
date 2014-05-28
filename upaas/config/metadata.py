@@ -154,4 +154,7 @@ class MetadataConfig(base.Config):
             "settings": base.ListEntry(value_type=unicode)
         },
         "cron": base.WildcardEntry(),
+        "features": {
+            "storage": base.BooleanEntry(default=False),
+        }
     }
