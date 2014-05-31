@@ -12,7 +12,7 @@ class BaseStorage(object):
 
     configuration_schema = {}
 
-    def __init__(self, settings):
+    def __init__(self, settings={}):
         self.settings = base.Config(settings,
                                     schema=self.configuration_schema)
 

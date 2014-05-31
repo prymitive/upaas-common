@@ -17,8 +17,8 @@ from pymongo import MongoClient
 
 from upaas.storage.mongodb import MongoDBStorage
 from upaas.storage.exceptions import FileNotFound
-from upaas.storage.utils import find_storage_handler
 from upaas.config.base import ConfigurationError
+from upaas.utils import load_handler
 
 
 @pytest.fixture(scope="module")
@@ -35,7 +35,7 @@ def storage(request):
 
 
 def test_find_storage():
-    assert find_storage_handler(
+    assert load_handler(
         'upaas.storage.mongodb.MongoDBStorage') is not None
 
 

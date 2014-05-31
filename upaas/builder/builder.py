@@ -22,9 +22,9 @@ from upaas import utils
 from upaas.checksum import calculate_file_sha256
 from upaas.builder import exceptions
 from upaas.chroot import Chroot
-from upaas.storage.utils import find_storage_handler
 from upaas.storage.exceptions import StorageError
 from upaas.processes import kill_and_remove_dir
+from upaas.utils import load_handler
 
 
 log = logging.getLogger(__name__)
@@ -265,8 +265,8 @@ class Builder(object):
             log.info("Using forced interpreter version: "
                      "%s" % interpreter_version)
 
-        self.storage = find_storage_handler(self.config.storage.handler,
-                                            self.config.storage.settings)
+        self.storage = load_handler(self.config.storage.handler,
+                                    self.config.storage.settings)
         if system_filename and self.storage.exists(system_filename):
             log.info("Starting package build using package "
                      "%s" % system_filename)
@@ -720,5 +720,5 @@ class OSBuilder(Builder):
         :param builder_config: Builder configuration.
         """
         self.config = builder_config
-        self.storage = find_storage_handler(self.config.storage.handler,
-                                            self.config.storage.settings)
+        self.storage = load_handler(self.config.storage.handler,
+                                    self.config.storage.settings)

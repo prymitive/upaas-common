@@ -16,8 +16,8 @@ import pytest
 
 from upaas.storage.local import LocalStorage
 from upaas.storage.exceptions import FileNotFound
-from upaas.storage.utils import find_storage_handler
 from upaas.config.base import ConfigurationError
+from upaas.utils import load_handler
 
 
 @pytest.fixture(scope="module")
@@ -33,13 +33,13 @@ def storage(request):
 
 
 def test_find_storage():
-    assert find_storage_handler(
+    assert load_handler(
         'upaas.storage.local.LocalStorage', settings={'dir': '/'}) is not None
 
 
 def test_find_storage_invalid():
     with pytest.raises(ConfigurationError):
-        find_storage_handler('upaas.storage.local.LocalStorage')
+        load_handler('upaas.storage.local.LocalStorage')
 
 
 def test_valid_settings(storage):

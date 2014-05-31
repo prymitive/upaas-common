@@ -13,6 +13,7 @@ import re
 import logging
 
 from upaas import commands
+from upaas.config.base import ConfigurationError
 
 
 log = logging.getLogger(__name__)
@@ -108,3 +109,32 @@ def backend_total_memory():
             except:
                 return 0
     return 0
+
+
+def load_handler(name, *args, **kwargs):
+    """
+    Will try to find storage handler class user has set in configuration,
+    create instance of it and return that instance.
+    """
+    module_name = ".".join(name.split(".")[0:len(name.split(".")) - 1])
+    class_name = name.split(".")[len(name.split(".")) - 1]
+    log.debug("Trying to import '%s' from '%s'" % (class_name,
+                                                   module_name))
+    try:
+        mod = __import__(module_name)
+        components = module_name.split('.')
+        for comp in components[1:]:
+            mod = getattr(mod, comp)
+        handler_class = getattr(mod, class_name)
+    except ImportError:
+        msg = "Handler '%s' could not be loaded" % name
+        log.error(msg)
+        raise ConfigurationError(msg)
+    else:
+        log.debug("Loaded handler '%s'" % name)
+        try:
+            return handler_class(*args, **kwargs)
+        except (ConfigurationError, TypeError):
+            msg = "Handler failed to initialize with given configuration"
+            log.error(msg)
+            raise ConfigurationError(msg)

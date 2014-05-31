@@ -9,10 +9,10 @@ from __future__ import unicode_literals
 
 import pytest
 
-from upaas.storage.utils import find_storage_handler
 from upaas.config.base import ConfigurationError
+from upaas.utils import load_handler
 
 
 def test_find_storage_invalid():
     with pytest.raises(ConfigurationError):
-        find_storage_handler('invalid.storage.module.Handler')
+        load_handler('invalid.storage.module.Handler')
