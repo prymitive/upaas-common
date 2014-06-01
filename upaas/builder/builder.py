@@ -250,7 +250,7 @@ class Builder(object):
         return ret
 
     def build_package(self, system_filename=None, interpreter_version=None,
-                      current_revision=None):
+                      current_revision=None, env=None):
         """
         Build a package
 
@@ -292,6 +292,9 @@ class Builder(object):
 
         if not self.interpreter_version:
             self.user_error("Unsupported interpreter version")
+
+        if env:
+            self.envs.update(env)
 
         self.actions.update(self.parse_actions(self.metadata))
         self.envs.update(self.parse_envs(self.metadata))
