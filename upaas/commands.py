@@ -85,7 +85,7 @@ def execute(cmd, timeout=None, cwd=None, output_loglevel=logging.DEBUG, env={},
                 log.debug("Deleting extra ENV variable %s" % key)
                 try:
                     del os.environ[key]
-                except KeyError:
+                except (KeyError, OSError):
                     pass
 
     log.info("Executing command: %s" % cmd, extra={"force_flush": True})

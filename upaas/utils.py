@@ -126,7 +126,7 @@ def load_handler(name, *args, **kwargs):
         for comp in components[1:]:
             mod = getattr(mod, comp)
         handler_class = getattr(mod, class_name)
-    except ImportError:
+    except (ImportError, AttributeError):
         msg = "Handler '%s' could not be loaded" % name
         log.error(msg)
         raise ConfigurationError(msg)

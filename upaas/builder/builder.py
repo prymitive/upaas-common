@@ -294,6 +294,7 @@ class Builder(object):
             self.user_error("Unsupported interpreter version")
 
         if env:
+            log.info("Additional ENV: %s" % ', '.join(env.keys()))
             self.envs.update(env)
 
         self.actions.update(self.parse_actions(self.metadata))
