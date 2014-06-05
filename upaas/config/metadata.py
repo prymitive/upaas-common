@@ -153,6 +153,5 @@ class MetadataConfig(base.Config):
         "uwsgi": {
             "settings": base.ListEntry(value_type=unicode)
         },
-        "cron": base.WildcardEntry(),
         "features": base.WildcardEntry(),
     }
