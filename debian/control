@@ -15,7 +15,7 @@ Depends: ${misc:Depends}, ${python:Depends},
  python-requests (>= 2.3.0),
  python-netifaces (>= 0.8),
  python-pymongo (>= 2.7.2),
- python-timestring (>= 1.6.0)
+ python-timestring (>= 1.6.1)
 XB-Python-Version: ${python:Versions}
 Provides: ${python:Provides}
 Description: uPaaS common classes
