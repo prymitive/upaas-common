@@ -12,7 +12,7 @@ import tempfile
 import datetime
 import logging
 
-from timestring import Date
+from timestring import Date, TimestringInvalid
 
 from upaas import distro
 
@@ -557,7 +557,7 @@ class Builder(object):
         if 'date' in ret:
             try:
                 ret['date'] = Date(ret['date']).date
-            except ValueError:
+            except (ValueError, TimestringInvalid):
                 log.warning("Can't convert '%s' to date" % ret['date'])
                 del ret['date']
 
