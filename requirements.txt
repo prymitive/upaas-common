@@ -2,6 +2,6 @@ pyyaml==3.11
 plumbum==1.4.2
 tastypie-queryset-client-p3k==0.7.2
 requests==2.5.1
-pymongo==2.7.2
+pymongo==2.8
 -e git+https://github.com/kelleyk/py3k-netifaces.git#egg=netifaces
 timestring==1.6.2
