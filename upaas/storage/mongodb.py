@@ -58,12 +58,12 @@ class MongoDBStorage(BaseStorage):
                         break
                     dest.write(data)
         except NoFile:
-            client.disconnect()
+            client.close()
             log.error("[GET] File not found: mongodb:%s" % remote_path)
             raise FileNotFound("%s not found" % remote_path)
         except Exception as e:
             log.error("[GET] Unhandled error: %s" % e)
-            client.disconnect()
+            client.close()
             raise StorageError(e)
 
     def put(self, local_path, remote_path):
@@ -84,10 +84,10 @@ class MongoDBStorage(BaseStorage):
                         break
                     gridin.write(data)
                 gridin.close()
-            client.disconnect()
+            client.close()
         except Exception as e:
             log.error("[PUT] Unhandled error: %s" % e)
-            client.disconnect()
+            client.close()
             raise StorageError(e)
 
     def delete(self, remote_path):
@@ -98,19 +98,19 @@ class MongoDBStorage(BaseStorage):
             fs.delete(fsfile._id)
             log.info("[DELETE] File deleted: mongodb:%s" % remote_path)
         except NoFile:
-            client.disconnect()
+            client.close()
             log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound("%s not found" % remote_path)
         except Exception as e:
             log.error("[DELETE] Unhandled error: %s" % e)
-            client.disconnect()
+            client.close()
             raise StorageError(e)
 
     def exists(self, remote_path):
         client = self.connect()
         fs = GridFS(client[self.settings.database])
         ret = fs.exists(filename=remote_path)
-        client.disconnect()
+        client.close()
         return ret
 
     def size(self, remote_path):
@@ -119,16 +119,16 @@ class MongoDBStorage(BaseStorage):
         try:
             fsfile = fs.get_last_version(filename=remote_path)
         except NoFile as e:
-            client.disconnect()
+            client.close()
             log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound(e)
         except Exception as e:
             log.error("[DELETE] Unhandled error: %s" % e)
-            client.disconnect()
+            client.close()
             raise StorageError(e)
         else:
             size = fsfile.length
-            client.disconnect()
+            client.close()
             return size
 
     def mtime(self, remote_path):
@@ -137,14 +137,14 @@ class MongoDBStorage(BaseStorage):
         try:
             fsfile = fs.get_last_version(filename=remote_path)
         except NoFile as e:
-            client.disconnect()
+            client.close()
             log.error("[DELETE] File not found: mongodb:%s" % remote_path)
             raise FileNotFound(e)
         except Exception as e:
             log.error("[DELETE] Unhandled error: %s" % e)
-            client.disconnect()
+            client.close()
             raise StorageError(e)
         else:
             timestamp = fsfile.upload_date
-            client.disconnect()
+            client.close()
             return timestamp
