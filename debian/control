@@ -14,7 +14,7 @@ Depends: ${misc:Depends}, ${python:Depends},
  python-yaml (>= 3.11),
  python-requests (>= 2.6.0),
  python-netifaces (>= 0.8),
- python-pymongo (>= 3.0),
+ python-pymongo (>= 2.8),
  python-timestring (>= 1.6.1)
 XB-Python-Version: ${python:Versions}
 Provides: ${python:Provides}
